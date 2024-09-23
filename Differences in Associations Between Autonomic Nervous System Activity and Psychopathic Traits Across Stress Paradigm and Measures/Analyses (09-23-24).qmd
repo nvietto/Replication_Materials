@@ -1,0 +1,3196 @@
+---
+title: "Analyses (09/23/24)"
+author: "Nicholas Vietto"
+format: html
+editor: source
+toc: true
+toc-location: left
+toc-title: "Table of Contents"
+theme: journal
+self-contained: true
+---
+
+```{r}
+
+pacman::p_load(tidyverse, janitor, ppcor, ltm, pastecs, corrtable, psych)
+
+options(scipen=999)
+
+data <- read.csv("data2.csv") # Data mean imputed to compensate for 0s in autonomic measures 
+
+data <- data[, -1]  # Removed x column that appears when exporting a csv from R
+
+```
+
+# **Recodes and Scales**
+
+## Dummy Codes
+
+These numbers contain the missing values, to get sample descriptive (e.g., race/ethnicity) the numbers must be calculated with the data frames in the Wrangling section. in other words, run all chunks then run tabyl(FSFSurveyT1$race_eth) in the console. 
+
+```{r}
+
+# Sex
+
+data$Genderfactor <-as.factor(data$Gender)
+data$GenderNumb <-as.numeric(data$Genderfactor)
+
+table(data$GenderNumb)
+data$Female <- data$GenderNumb
+data$Female = ifelse(data$GenderNumb == 1, 1, data$Female)
+data$Female = ifelse(data$GenderNumb == 2, 0, data$Female)
+table(data$Female)
+
+table(data$GenderNumb)
+data$Male <- data$GenderNumb
+data$Male = ifelse(data$GenderNumb == 1, 0, data$Male)
+data$Male = ifelse(data$GenderNumb == 2, 1, data$Male)
+table(data$Male)
+
+
+# Race
+
+# Dem percents 
+table(data$race_eth)
+data$race_eth1 <- as.factor(data$race_eth)   
+data$race_eth2 <- as.numeric(data$race_eth1)
+table(data$race_eth2)
+
+
+data$race_ethDC <- data$race_eth2
+data$race_ethDC = ifelse(data$race_eth2 == 7, 8, data$race_ethDC)
+data$race_ethDC = ifelse(data$race_eth2 == 6, 0, data$race_ethDC)
+data$race_ethDC = ifelse(data$race_eth2 == 5, 0, data$race_ethDC)
+data$race_ethDC = ifelse(data$race_eth2 == 4, 0, data$race_ethDC)
+data$race_ethDC = ifelse(data$race_eth2 == 3, 0, data$race_ethDC)
+data$race_ethDC = ifelse(data$race_eth2 == 2, 0, data$race_ethDC)
+data$race_ethDC = ifelse(data$race_eth2 == 1, 0, data$race_ethDC)
+table(data$race_ethDC)
+
+
+data$White = data$race_ethDC
+data$White <- as.factor(data$White)
+data$White = ifelse(data$race_ethDC == 8, 1, data$White)
+data$White = ifelse(data$race_ethDC == 0, 0, data$White)
+table(data$White)
+
+
+```
+
+## SRP Reverse Codes
+
+IPM (16, 24, 31, 38, 61) CA (11, 19, 23, 26, 44) ELS (14, 22, 25, 36, 47) ASB (5, 6, 18, 21, 34, 46)
+
+Citation: Paulhus, D.L., Neumann, C. S., & Hare, R.D. (in press). Manual for the Self-Report Psychopathy scale 4th edition. Toronto: Multi-Health Systems.
+
+[Code Reference](https://arc.psych.wisc.edu/self-report/self-report-psychopathy-srp-iii/)
+
+```{r}
+# IPM
+
+table(data$SRP_16n)
+data$SRP16nRev = data$SRP_16n
+data$SRP16nRev = ifelse(data$SRP_16n == 1, 5, data$SRP16nRev)
+data$SRP16nRev = ifelse(data$SRP_16n == 2, 4, data$SRP16nRev)
+data$SRP16nRev = ifelse(data$SRP_16n == 4, 2, data$SRP16nRev)
+data$SRP16nRev = ifelse(data$SRP_16n == 5, 1, data$SRP16nRev)
+table(data$SRP16nRev)
+
+table(data$SRP_24n)
+data$SRP24nRev = data$SRP_24n
+data$SRP24nRev = ifelse(data$SRP_24n == 1, 5, data$SRP24nRev)
+data$SRP24nRev = ifelse(data$SRP_24n == 2, 4, data$SRP24nRev)
+data$SRP24nRev = ifelse(data$SRP_24n == 4, 2, data$SRP24nRev)
+data$SRP24nRev = ifelse(data$SRP_24n == 5, 1, data$SRP24nRev)
+table(data$SRP24nRev)
+
+table(data$SRP_31n)
+data$SRP31nRev = data$SRP_31n
+data$SRP31nRev = ifelse(data$SRP_31n == 1, 5, data$SRP31nRev)
+data$SRP31nRev = ifelse(data$SRP_31n == 2, 4, data$SRP31nRev)
+data$SRP31nRev = ifelse(data$SRP_31n == 4, 2, data$SRP31nRev)
+data$SRP31nRev = ifelse(data$SRP_31n == 5, 1, data$SRP31nRev)
+table(data$SRP31nRev)
+
+table(data$SRP_38n)
+data$SRP38nRev = data$SRP_38n
+data$SRP38nRev = ifelse(data$SRP_38n == 1, 5, data$SRP38nRev)
+data$SRP38nRev = ifelse(data$SRP_38n == 2, 4, data$SRP38nRev)
+data$SRP38nRev = ifelse(data$SRP_38n == 4, 2, data$SRP38nRev)
+data$SRP38nRev = ifelse(data$SRP_38n == 5, 1, data$SRP38nRev)
+table(data$SRP38nRev)
+
+table(data$SRP_61n)
+data$SRP61nRev = data$SRP_61n
+data$SRP61nRev = ifelse(data$SRP_61n == 1, 5, data$SRP61nRev)
+data$SRP61nRev = ifelse(data$SRP_61n == 2, 4, data$SRP61nRev)
+data$SRP61nRev = ifelse(data$SRP_61n == 4, 2, data$SRP61nRev)
+data$SRP61nRev = ifelse(data$SRP_61n == 5, 1, data$SRP61nRev)
+table(data$SRP61nRev)
+
+
+# CA
+
+table(data$SRP_11n)
+data$SRP11nRev = data$SRP_11n
+data$SRP11nRev = ifelse(data$SRP_11n == 1, 5, data$SRP11nRev)
+data$SRP11nRev = ifelse(data$SRP_11n == 2, 4, data$SRP11nRev)
+data$SRP11nRev = ifelse(data$SRP_11n == 4, 2, data$SRP11nRev)
+data$SRP11nRev = ifelse(data$SRP_11n == 5, 1, data$SRP11nRev)
+table(data$SRP11nRev)
+
+table(data$SRP_19n)
+data$SRP19nRev = data$SRP_19n
+data$SRP19nRev = ifelse(data$SRP_19n == 1, 5, data$SRP19nRev)
+data$SRP19nRev = ifelse(data$SRP_19n == 2, 4, data$SRP19nRev)
+data$SRP19nRev = ifelse(data$SRP_19n == 4, 2, data$SRP19nRev)
+data$SRP19nRev = ifelse(data$SRP_19n == 5, 1, data$SRP19nRev)
+table(data$SRP19nRev)
+
+table(data$SRP_23n)
+data$SRP23nRev = data$SRP_23n
+data$SRP23nRev = ifelse(data$SRP_23n == 1, 5, data$SRP23nRev)
+data$SRP23nRev = ifelse(data$SRP_23n == 2, 4, data$SRP23nRev)
+data$SRP23nRev = ifelse(data$SRP_23n == 4, 2, data$SRP23nRev)
+data$SRP23nRev = ifelse(data$SRP_23n == 5, 1, data$SRP23nRev)
+table(data$SRP23nRev)
+
+
+table(data$SRP_26n)
+data$SRP26nRev = data$SRP_26n
+data$SRP26nRev = ifelse(data$SRP_26n == 1, 5, data$SRP26nRev)
+data$SRP26nRev = ifelse(data$SRP_26n == 2, 4, data$SRP26nRev)
+data$SRP26nRev = ifelse(data$SRP_26n == 4, 2, data$SRP26nRev)
+data$SRP26nRev = ifelse(data$SRP_26n == 5, 1, data$SRP26nRev)
+table(data$SRP26nRev)
+
+
+table(data$SRP_44n)
+data$SRP44nRev = data$SRP_44n
+data$SRP44nRev = ifelse(data$SRP_44n == 1, 5, data$SRP44nRev)
+data$SRP44nRev = ifelse(data$SRP_44n == 2, 4, data$SRP44nRev)
+data$SRP44nRev = ifelse(data$SRP_44n == 4, 2, data$SRP44nRev)
+data$SRP44nRev = ifelse(data$SRP_44n == 5, 1, data$SRP44nRev)
+table(data$SRP44nRev)
+
+# ELS
+
+table(data$SRP_14n)
+data$SRP14nRev = data$SRP_14n
+data$SRP14nRev = ifelse(data$SRP_14n == 1, 5, data$SRP14nRev)
+data$SRP14nRev = ifelse(data$SRP_14n == 2, 4, data$SRP14nRev)
+data$SRP14nRev = ifelse(data$SRP_14n == 4, 2, data$SRP14nRev)
+data$SRP14nRev = ifelse(data$SRP_14n == 5, 1, data$SRP14nRev)
+table(data$SRP14nRev)
+
+table(data$SRP_22n)
+data$SRP22nRev = data$SRP_22n
+data$SRP22nRev = ifelse(data$SRP_22n == 1, 5, data$SRP22nRev)
+data$SRP22nRev = ifelse(data$SRP_22n == 2, 4, data$SRP22nRev)
+data$SRP22nRev = ifelse(data$SRP_22n == 4, 2, data$SRP22nRev)
+data$SRP22nRev = ifelse(data$SRP_22n == 5, 1, data$SRP22nRev)
+table(data$SRP22nRev)
+
+table(data$SRP_25n)
+data$SRP25nRev = data$SRP_25n
+data$SRP25nRev = ifelse(data$SRP_25n == 1, 5, data$SRP25nRev)
+data$SRP25nRev = ifelse(data$SRP_25n == 2, 4, data$SRP25nRev)
+data$SRP25nRev = ifelse(data$SRP_25n == 4, 2, data$SRP25nRev)
+data$SRP25nRev = ifelse(data$SRP_25n == 5, 1, data$SRP25nRev)
+table(data$SRP25nRev)
+
+table(data$SRP_36n)
+data$SRP36nRev = data$SRP_36n
+data$SRP36nRev = ifelse(data$SRP_36n == 1, 5, data$SRP36nRev)
+data$SRP36nRev = ifelse(data$SRP_36n == 2, 4, data$SRP36nRev)
+data$SRP36nRev = ifelse(data$SRP_36n == 4, 2, data$SRP36nRev)
+data$SRP36nRev = ifelse(data$SRP_36n == 5, 1, data$SRP36nRev)
+table(data$SRP36nRev)
+
+table(data$SRP_47n)
+data$SRP47nRev = data$SRP_47n
+data$SRP47nRev = ifelse(data$SRP_47n == 1, 5, data$SRP47nRev)
+data$SRP47nRev = ifelse(data$SRP_47n == 2, 4, data$SRP47nRev)
+data$SRP47nRev = ifelse(data$SRP_47n == 4, 2, data$SRP47nRev)
+data$SRP47nRev = ifelse(data$SRP_47n == 5, 1, data$SRP47nRev)
+table(data$SRP47nRev)
+
+# ASB
+
+table(data$SRP_05n)
+data$SRP5nRev = data$SRP_05n
+data$SRP5nRev = ifelse(data$SRP_05n == 1, 5, data$SRP5nRev)
+data$SRP5nRev = ifelse(data$SRP_05n == 2, 4, data$SRP5nRev)
+data$SRP5nRev = ifelse(data$SRP_05n == 4, 2, data$SRP5nRev)
+data$SRP5nRev = ifelse(data$SRP_05n == 5, 1, data$SRP5nRev)
+table(data$SRP5nRev)
+
+table(data$SRP_06n)
+data$SRP6nRev = data$SRP_06n
+data$SRP6nRev = ifelse(data$SRP_06n == 1, 5, data$SRP6nRev)
+data$SRP6nRev = ifelse(data$SRP_06n == 2, 4, data$SRP6nRev)
+data$SRP6nRev = ifelse(data$SRP_06n == 4, 2, data$SRP6nRev)
+data$SRP6nRev = ifelse(data$SRP_06n == 5, 1, data$SRP6nRev)
+table(data$SRP6nRev)
+
+table(data$SRP_18n)
+data$SRP18nRev = data$SRP_18n
+data$SRP18nRev = ifelse(data$SRP_18n == 1, 5, data$SRP18nRev)
+data$SRP18nRev = ifelse(data$SRP_18n == 2, 4, data$SRP18nRev)
+data$SRP18nRev = ifelse(data$SRP_18n == 4, 2, data$SRP18nRev)
+data$SRP18nRev = ifelse(data$SRP_18n == 5, 1, data$SRP18nRev)
+table(data$SRP18nRev)
+
+table(data$SRP_21n)
+data$SRP21nRev = data$SRP_21n
+data$SRP21nRev = ifelse(data$SRP_21n == 1, 5, data$SRP21nRev)
+data$SRP21nRev = ifelse(data$SRP_21n == 2, 4, data$SRP21nRev)
+data$SRP21nRev = ifelse(data$SRP_21n == 4, 2, data$SRP21nRev)
+data$SRP21nRev = ifelse(data$SRP_21n == 5, 1, data$SRP21nRev)
+table(data$SRP21nRev)
+
+table(data$SRP_34n)
+data$SRP34nRev = data$SRP_34n
+data$SRP34nRev = ifelse(data$SRP_34n == 1, 5, data$SRP34nRev)
+data$SRP34nRev = ifelse(data$SRP_34n == 2, 4, data$SRP34nRev)
+data$SRP34nRev = ifelse(data$SRP_34n == 4, 2, data$SRP34nRev)
+data$SRP34nRev = ifelse(data$SRP_34n == 5, 1, data$SRP34nRev)
+table(data$SRP34nRev)
+
+table(data$SRP_46n)
+data$SRP46nRev = data$SRP_46n
+data$SRP46nRev = ifelse(data$SRP_46n == 1, 5, data$SRP46nRev)
+data$SRP46nRev = ifelse(data$SRP_46n == 2, 4, data$SRP46nRev)
+data$SRP46nRev = ifelse(data$SRP_46n == 4, 2, data$SRP46nRev)
+data$SRP46nRev = ifelse(data$SRP_46n == 5, 1, data$SRP46nRev)
+table(data$SRP46nRev)
+
+
+```
+
+## Levenson Reverse Codes
+
+(3, 7, 10, 13, **15**, 21, 26)
+
+Bold missing from half of surveys
+
+See code book to match the questions in figure to the numeric values in survey.
+
+Citation: Levenson, M. R., Kiehl, K. A., & Fitzpatrick, C. M. (1995). Assessing psychopathic attributes in a noninstitutionalized population. Journal of Personality and Social Psychology, 68(1), 151--158.
+
+```{r}
+
+
+table(data$Lev_10n)
+data$Lev_10nRev = data$Lev_10n
+data$Lev_10nRev = ifelse(data$Lev_10n == 1, 4, data$Lev_10nRev)
+data$Lev_10nRev = ifelse(data$Lev_10n == 2, 3, data$Lev_10nRev)
+data$Lev_10nRev = ifelse(data$Lev_10n == 3, 2, data$Lev_10nRev)
+data$Lev_10nRev = ifelse(data$Lev_10n == 4, 1, data$Lev_10nRev)
+table(data$Lev_10nRev)
+
+
+table(data$Lev_13n)
+data$Lev_13nRev = data$Lev_12n
+data$Lev_13nRev = ifelse(data$Lev_13n == 1, 4, data$Lev_13nRev)
+data$Lev_13nRev = ifelse(data$Lev_13n == 2, 3, data$Lev_13nRev)
+data$Lev_13nRev = ifelse(data$Lev_13n == 3, 2, data$Lev_13nRev)
+data$Lev_13nRev = ifelse(data$Lev_13n == 4, 1, data$Lev_13nRev)
+table(data$Lev_13nRev)
+
+table(data$Lev_15n)
+data$Lev_15nRev = data$Lev_15n
+data$Lev_15nRev = ifelse(data$Lev_15n == 1, 4, data$Lev_15nRev)
+data$Lev_15nRev = ifelse(data$Lev_15n == 2, 3, data$Lev_15nRev)
+data$Lev_15nRev = ifelse(data$Lev_15n == 3, 2, data$Lev_15nRev)
+data$Lev_15nRev = ifelse(data$Lev_15n == 4, 1, data$Lev_15nRev)
+table(data$Lev_15nRev)
+
+table(data$Lev_21n)
+data$Lev_21nRev = data$Lev_21n
+data$Lev_21nRev = ifelse(data$Lev_21n == 1, 4, data$Lev_21nRev)
+data$Lev_21nRev = ifelse(data$Lev_21n == 2, 3, data$Lev_21nRev)
+data$Lev_21nRev = ifelse(data$Lev_21n == 3, 2, data$Lev_21nRev)
+data$Lev_21nRev = ifelse(data$Lev_21n == 4, 1, data$Lev_21nRev)
+table(data$Lev_21nRev)
+
+table(data$Lev_26n)
+data$Lev_26nRev = data$Lev_26n
+data$Lev_26nRev = ifelse(data$Lev_26n == 1, 4, data$Lev_26nRev)
+data$Lev_26nRev = ifelse(data$Lev_26n == 2, 3, data$Lev_26nRev)
+data$Lev_26nRev = ifelse(data$Lev_26n == 3, 2, data$Lev_26nRev)
+data$Lev_26nRev = ifelse(data$Lev_26n == 4, 1, data$Lev_26nRev)
+table(data$Lev_26nRev)
+
+
+table(data$Lev_03n)
+data$Lev_03nRev = data$Lev_03n
+data$Lev_03nRev = ifelse(data$Lev_03n == 1, 4, data$Lev_03nRev)
+data$Lev_03nRev = ifelse(data$Lev_03n == 2, 3, data$Lev_03nRev)
+data$Lev_03nRev = ifelse(data$Lev_03n == 3, 2, data$Lev_03nRev)
+data$Lev_03nRev = ifelse(data$Lev_03n == 4, 1, data$Lev_03nRev)
+table(data$Lev_03nRev)
+
+
+table(data$Lev_07n)
+data$Lev_07nRev = data$Lev_07n
+data$Lev_07nRev = ifelse(data$Lev_07n == 1, 4, data$Lev_07nRev)
+data$Lev_07nRev = ifelse(data$Lev_07n == 2, 3, data$Lev_07nRev)
+data$Lev_07nRev = ifelse(data$Lev_07n == 3, 2, data$Lev_07nRev)
+data$Lev_07nRev = ifelse(data$Lev_07n == 4, 1, data$Lev_07nRev)
+table(data$Lev_07nRev)
+
+
+
+```
+
+## ICU
+
+(1, 3, 5, 8, 13, 14, 15, 16, 17, 19, 23, 24)
+
+Essau, C. A., Sasagawa, S., & Frick, P. J. (2006). Callous-unemotional traits in a community sample of adolescents. Assessment, 13(4), 454-469.
+
+[Code Reference](https://arc.psych.wisc.edu/self-report/the-inventory-of-callous-unemotional-traits-icu/)
+
+```{r}
+
+
+# Callous
+
+table(data$ICU_8n)
+data$ICU_8nRev = data$ICU_8n
+data$ICU_8nRev = ifelse(data$ICU_8n == 1, 4, data$ICU_8nRev)
+data$ICU_8nRev = ifelse(data$ICU_8n == 2, 3, data$ICU_8nRev)
+data$ICU_8nRev = ifelse(data$ICU_8n == 3, 2, data$ICU_8nRev)
+data$ICU_8nRev = ifelse(data$ICU_8n == 4, 1, data$ICU_8nRev)
+table(data$ICU_8nRev)
+
+# Uncaring 
+
+table(data$ICU_15n)
+data$ICU_15nRev = data$ICU_15n
+data$ICU_15nRev = ifelse(data$ICU_15n == 1, 4, data$ICU_15nRev)
+data$ICU_15nRev = ifelse(data$ICU_15n == 2, 3, data$ICU_15nRev)
+data$ICU_15nRev = ifelse(data$ICU_15n == 3, 2, data$ICU_15nRev)
+data$ICU_15nRev = ifelse(data$ICU_15n == 4, 1, data$ICU_15nRev)
+table(data$ICU_15nRev)
+
+table(data$ICU_23n)
+data$ICU_23nRev = data$ICU_23n
+data$ICU_23nRev = ifelse(data$ICU_23n == 1, 4, data$ICU_23nRev)
+data$ICU_23nRev = ifelse(data$ICU_23n == 2, 3, data$ICU_23nRev)
+data$ICU_23nRev = ifelse(data$ICU_23n == 3, 2, data$ICU_23nRev)
+data$ICU_23nRev = ifelse(data$ICU_23n == 4, 1, data$ICU_23nRev)
+table(data$ICU_23nRev)
+
+table(data$ICU_16n)
+data$ICU_16nRev = data$ICU_16n
+data$ICU_16nRev = ifelse(data$ICU_16n == 1, 4, data$ICU_16nRev)
+data$ICU_16nRev = ifelse(data$ICU_16n == 2, 3, data$ICU_16nRev)
+data$ICU_16nRev = ifelse(data$ICU_16n == 3, 2, data$ICU_16nRev)
+data$ICU_16nRev = ifelse(data$ICU_16n == 4, 1, data$ICU_16nRev)
+table(data$ICU_16nRev)
+
+table(data$ICU_3n)
+data$ICU_3nRev = data$ICU_3n
+data$ICU_3nRev = ifelse(data$ICU_3n == 1, 4, data$ICU_3nRev)
+data$ICU_3nRev = ifelse(data$ICU_3n == 2, 3, data$ICU_3nRev)
+data$ICU_3nRev = ifelse(data$ICU_3n == 3, 2, data$ICU_3nRev)
+data$ICU_3nRev = ifelse(data$ICU_3n == 4, 1, data$ICU_3nRev)
+table(data$ICU_3nRev)
+
+table(data$ICU_17n)
+data$ICU_17nRev = data$ICU_17n
+data$ICU_17nRev = ifelse(data$ICU_17n == 1, 4, data$ICU_17nRev)
+data$ICU_17nRev = ifelse(data$ICU_17n == 2, 3, data$ICU_17nRev)
+data$ICU_17nRev = ifelse(data$ICU_17n == 3, 2, data$ICU_17nRev)
+data$ICU_17nRev = ifelse(data$ICU_17n == 4, 1, data$ICU_17nRev)
+table(data$ICU_17nRev)
+
+table(data$ICU_24n)
+data$ICU_24nRev = data$ICU_24n
+data$ICU_24nRev = ifelse(data$ICU_24n == 1, 4, data$ICU_24nRev)
+data$ICU_24nRev = ifelse(data$ICU_24n == 2, 3, data$ICU_24nRev)
+data$ICU_24nRev = ifelse(data$ICU_24n == 3, 2, data$ICU_24nRev)
+data$ICU_24nRev = ifelse(data$ICU_24n == 4, 1, data$ICU_24nRev)
+table(data$ICU_24nRev)
+
+table(data$ICU_13n)
+data$ICU_13nRev = data$ICU_13n
+data$ICU_13nRev = ifelse(data$ICU_13n == 1, 4, data$ICU_13nRev)
+data$ICU_13nRev = ifelse(data$ICU_13n == 2, 3, data$ICU_13nRev)
+data$ICU_13nRev = ifelse(data$ICU_13n == 3, 2, data$ICU_13nRev)
+data$ICU_13nRev = ifelse(data$ICU_13n == 4, 1, data$ICU_13nRev)
+table(data$ICU_13nRev)
+
+table(data$ICU_5n)
+data$ICU_5nRev = data$ICU_5n
+data$ICU_5nRev = ifelse(data$ICU_5n == 1, 4, data$ICU_5nRev)
+data$ICU_5nRev = ifelse(data$ICU_5n == 2, 3, data$ICU_5nRev)
+data$ICU_5nRev = ifelse(data$ICU_5n == 3, 2, data$ICU_5nRev)
+data$ICU_5nRev = ifelse(data$ICU_5n == 4, 1, data$ICU_5nRev)
+table(data$ICU_5nRev)
+
+# Unemotional 
+
+table(data$ICU_1n)
+data$ICU_1nRev = data$ICU_1n
+data$ICU_1nRev = ifelse(data$ICU_1n == 1, 4, data$ICU_1nRev)
+data$ICU_1nRev = ifelse(data$ICU_1n == 2, 3, data$ICU_1nRev)
+data$ICU_1nRev = ifelse(data$ICU_1n == 3, 2, data$ICU_1nRev)
+data$ICU_1nRev = ifelse(data$ICU_1n == 4, 1, data$ICU_1nRev)
+table(data$ICU_1nRev)
+
+table(data$ICU_19n)
+data$ICU_19nRev = data$ICU_19n
+data$ICU_19nRev = ifelse(data$ICU_19n == 1, 4, data$ICU_19nRev)
+data$ICU_19nRev = ifelse(data$ICU_19n == 2, 3, data$ICU_19nRev)
+data$ICU_19nRev = ifelse(data$ICU_19n == 3, 2, data$ICU_19nRev)
+data$ICU_19nRev = ifelse(data$ICU_19n == 4, 1, data$ICU_19nRev)
+table(data$ICU_19nRev)
+
+table(data$ICU_14n)
+data$ICU_14nRev = data$ICU_14n
+data$ICU_14nRev = ifelse(data$ICU_14n == 1, 4, data$ICU_14nRev)
+data$ICU_14nRev = ifelse(data$ICU_14n == 2, 3, data$ICU_14nRev)
+data$ICU_14nRev = ifelse(data$ICU_14n == 3, 2, data$ICU_14nRev)
+data$ICU_14nRev = ifelse(data$ICU_14n == 4, 1, data$ICU_14nRev)
+table(data$ICU_14nRev)
+
+
+
+```
+
+## SSS
+
+(1, 29, 32, 36, 5, 8, 24, 34, 39, 3, 16, 17, 28, 6, 9, 14, 18, 22)
+
+Recoding was done by creating a "false object" or a place holder since it is a binary scale. Example below.
+
+### Diagram of recode
+
+$$ A (OriginalValue) -> C(Placeholder) $$ $$ B(OrginalValue) -> A(ReversedValue) $$
+
+$$ C(Placeholder) -> B(ReverseValue) $$
+
+[Code Reference](https://arc.psych.wisc.edu/self-report/sensation-seeking-scale-sss/)
+
+```{r}
+
+# Disinhibition 
+
+
+table(data$ZSSS_1n)
+data$ZSSS_1nRevFalse <- data$ZSSS_1n
+data$ZSSS_1nRevFalse = ifelse(data$ZSSS_1n == 0, 2, data$ZSSS_1nRevFalse)
+data$ZSSS_1nRevFalse = ifelse(data$ZSSS_1n == 1, 0, data$ZSSS_1nRevFalse)
+table(data$ZSSS_1nRevFalse)
+data$ZSSS_1nRev <- data$ZSSS_1nRevFalse
+data$ZSSS_1nRev <- ifelse(data$ZSSS_1nRevFalse == 2, 1, data$ZSSS_1nRev)
+table(data$ZSSS_1nRev)
+
+
+table(data$ZSSS_29n)
+data$ZSSS_29nRevFalse <- data$ZSSS_29n
+data$ZSSS_29nRevFalse = ifelse(data$ZSSS_29n == 0, 2, data$ZSSS_29nRevFalse)
+data$ZSSS_29nRevFalse = ifelse(data$ZSSS_29n == 1, 0, data$ZSSS_29nRevFalse)
+table(data$ZSSS_29nRevFalse)
+data$ZSSS_29nRev <- data$ZSSS_29nRevFalse
+data$ZSSS_29nRev <- ifelse(data$ZSSS_29nRevFalse == 2, 1, data$ZSSS_29nRev)
+table(data$ZSSS_29nRev)
+
+
+table(data$ZSSS_32n)
+data$ZSSS_32nRevFalse <- data$ZSSS_32n
+data$ZSSS_32nRevFalse = ifelse(data$ZSSS_32n == 0, 2, data$ZSSS_32nRevFalse)
+data$ZSSS_32nRevFalse = ifelse(data$ZSSS_32n == 1, 0, data$ZSSS_32nRevFalse)
+table(data$ZSSS_32nRevFalse)
+data$ZSSS_32nRev <- data$ZSSS_32nRevFalse
+data$ZSSS_32nRev <- ifelse(data$ZSSS_32nRevFalse == 2, 1, data$ZSSS_32nRev)
+table(data$ZSSS_32nRev)
+
+
+table(data$ZSSS_36n)
+data$ZSSS_36nRevFalse <- data$ZSSS_36n
+data$ZSSS_36nRevFalse = ifelse(data$ZSSS_36n == 0, 2, data$ZSSS_36nRevFalse)
+data$ZSSS_36nRevFalse = ifelse(data$ZSSS_36n == 1, 0, data$ZSSS_36nRevFalse)
+table(data$ZSSS_36nRevFalse)
+data$ZSSS_36nRev <- data$ZSSS_36nRevFalse
+data$ZSSS_36nRev <- ifelse(data$ZSSS_36nRevFalse == 2, 1, data$ZSSS_36nRev)
+table(data$ZSSS_36nRev)
+
+# Boredom 
+
+
+
+table(data$ZSSS_5n)
+data$ZSSS_5nRevFalse <- data$ZSSS_5n
+data$ZSSS_5nRevFalse = ifelse(data$ZSSS_5n == 0, 2, data$ZSSS_5nRevFalse)
+data$ZSSS_5nRevFalse = ifelse(data$ZSSS_5n == 1, 0, data$ZSSS_5nRevFalse)
+table(data$ZSSS_5nRevFalse)
+data$ZSSS_5nRev <- data$ZSSS_5nRevFalse
+data$ZSSS_5nRev <- ifelse(data$ZSSS_5nRevFalse == 2, 1, data$ZSSS_5nRev)
+table(data$ZSSS_5nRev)
+
+table(data$ZSSS_8n)
+data$ZSSS_8nRevFalse <- data$ZSSS_8n
+data$ZSSS_8nRevFalse = ifelse(data$ZSSS_8n == 0, 2, data$ZSSS_8nRevFalse)
+data$ZSSS_8nRevFalse = ifelse(data$ZSSS_8n == 1, 0, data$ZSSS_8nRevFalse)
+table(data$ZSSS_8nRevFalse)
+data$ZSSS_8nRev <- data$ZSSS_8nRevFalse
+data$ZSSS_8nRev <- ifelse(data$ZSSS_8nRevFalse == 2, 1, data$ZSSS_8nRev)
+table(data$ZSSS_8nRev)
+
+table(data$ZSSS_24n)
+data$ZSSS_24nRevFalse <- data$ZSSS_24n
+data$ZSSS_24nRevFalse = ifelse(data$ZSSS_24n == 0, 2, data$ZSSS_24nRevFalse)
+data$ZSSS_24nRevFalse = ifelse(data$ZSSS_24n == 1, 0, data$ZSSS_24nRevFalse)
+table(data$ZSSS_24nRevFalse)
+data$ZSSS_24nRev <- data$ZSSS_24nRevFalse
+data$ZSSS_24nRev <- ifelse(data$ZSSS_24nRevFalse == 2, 1, data$ZSSS_24nRev)
+table(data$ZSSS_24nRev)
+
+table(data$ZSSS_34n)
+data$ZSSS_34nRevFalse <- data$ZSSS_34n
+data$ZSSS_34nRevFalse = ifelse(data$ZSSS_34n == 0, 2, data$ZSSS_34nRevFalse)
+data$ZSSS_34nRevFalse = ifelse(data$ZSSS_34n == 1, 0, data$ZSSS_34nRevFalse)
+table(data$ZSSS_34nRevFalse)
+data$ZSSS_34nRev <- data$ZSSS_34nRevFalse
+data$ZSSS_34nRev <- ifelse(data$ZSSS_34nRevFalse == 2, 1, data$ZSSS_34nRev)
+table(data$ZSSS_34nRev)
+
+table(data$ZSSS_39n)
+data$ZSSS_39nRevFalse <- data$ZSSS_39n
+data$ZSSS_39nRevFalse = ifelse(data$ZSSS_39n == 0, 2, data$ZSSS_39nRevFalse)
+data$ZSSS_39nRevFalse = ifelse(data$ZSSS_39n == 1, 0, data$ZSSS_39nRevFalse)
+table(data$ZSSS_39nRevFalse)
+data$ZSSS_39nRev <- data$ZSSS_39nRevFalse
+data$ZSSS_39nRev <- ifelse(data$ZSSS_39nRevFalse == 2, 1, data$ZSSS_39nRev)
+table(data$ZSSS_39nRev)
+
+# Thrill 
+
+
+table(data$ZSSS_3n)
+data$ZSSS_3nRevFalse <- data$ZSSS_3n
+data$ZSSS_3nRevFalse = ifelse(data$ZSSS_3n == 0, 2, data$ZSSS_3nRevFalse)
+data$ZSSS_3nRevFalse = ifelse(data$ZSSS_3n == 1, 0, data$ZSSS_3nRevFalse)
+table(data$ZSSS_3nRevFalse)
+data$ZSSS_3nRev <- data$ZSSS_3nRevFalse
+data$ZSSS_3nRev <- ifelse(data$ZSSS_3nRevFalse == 2, 1, data$ZSSS_3nRev)
+table(data$ZSSS_3nRev)
+
+table(data$ZSSS_16n)
+data$ZSSS_16nRevFalse <- data$ZSSS_16n
+data$ZSSS_16nRevFalse = ifelse(data$ZSSS_16n == 0, 2, data$ZSSS_16nRevFalse)
+data$ZSSS_16nRevFalse = ifelse(data$ZSSS_16n == 1, 0, data$ZSSS_16nRevFalse)
+table(data$ZSSS_16nRevFalse)
+data$ZSSS_16nRev <- data$ZSSS_16nRevFalse
+data$ZSSS_16nRev <- ifelse(data$ZSSS_16nRevFalse == 2, 1, data$ZSSS_16nRev)
+table(data$ZSSS_16nRev)
+
+table(data$ZSSS_17n)
+data$ZSSS_17nRevFalse <- data$ZSSS_17n
+data$ZSSS_17nRevFalse = ifelse(data$ZSSS_17n == 0, 2, data$ZSSS_17nRevFalse)
+data$ZSSS_17nRevFalse = ifelse(data$ZSSS_17n == 1, 0, data$ZSSS_17nRevFalse)
+table(data$ZSSS_17nRevFalse)
+data$ZSSS_17nRev <- data$ZSSS_17nRevFalse
+data$ZSSS_17nRev <- ifelse(data$ZSSS_17nRevFalse == 2, 1, data$ZSSS_17nRev)
+table(data$ZSSS_17nRev)
+
+table(data$ZSSS_23n)
+data$ZSSS_23nRevFalse <- data$ZSSS_23n
+data$ZSSS_23nRevFalse = ifelse(data$ZSSS_23n == 0, 2, data$ZSSS_23nRevFalse)
+data$ZSSS_23nRevFalse = ifelse(data$ZSSS_23n == 1, 0, data$ZSSS_23nRevFalse)
+table(data$ZSSS_23nRevFalse)
+data$ZSSS_23nRev <- data$ZSSS_23nRevFalse
+data$ZSSS_23nRev <- ifelse(data$ZSSS_23nRevFalse == 2, 1, data$ZSSS_23nRev)
+table(data$ZSSS_23nRev)
+
+table(data$ZSSS_28n)
+data$ZSSS_28nRevFalse <- data$ZSSS_28n
+data$ZSSS_28nRevFalse = ifelse(data$ZSSS_28n == 0, 2, data$ZSSS_28nRevFalse)
+data$ZSSS_28nRevFalse = ifelse(data$ZSSS_28n == 1, 0, data$ZSSS_28nRevFalse)
+table(data$ZSSS_28nRevFalse)
+data$ZSSS_28nRev <- data$ZSSS_28nRevFalse
+data$ZSSS_28nRev <- ifelse(data$ZSSS_28nRevFalse == 2, 1, data$ZSSS_28nRev)
+table(data$ZSSS_28nRev)
+
+# Exp 
+
+
+table(data$ZSSS_6n)
+data$ZSSS_6nRevFalse <- data$ZSSS_6n
+data$ZSSS_6nRevFalse = ifelse(data$ZSSS_6n == 0, 2, data$ZSSS_6nRevFalse)
+data$ZSSS_6nRevFalse = ifelse(data$ZSSS_6n == 1, 0, data$ZSSS_6nRevFalse)
+table(data$ZSSS_6nRevFalse)
+data$ZSSS_6nRev <- data$ZSSS_6nRevFalse
+data$ZSSS_6nRev <- ifelse(data$ZSSS_6nRevFalse == 2, 1, data$ZSSS_6nRev)
+table(data$ZSSS_6nRev)
+
+table(data$ZSSS_9n)
+data$ZSSS_9nRevFalse <- data$ZSSS_9n
+data$ZSSS_9nRevFalse = ifelse(data$ZSSS_9n == 0, 2, data$ZSSS_9nRevFalse)
+data$ZSSS_9nRevFalse = ifelse(data$ZSSS_9n == 1, 0, data$ZSSS_9nRevFalse)
+table(data$ZSSS_9nRevFalse)
+data$ZSSS_9nRev <- data$ZSSS_9nRevFalse
+data$ZSSS_9nRev <- ifelse(data$ZSSS_9nRevFalse == 2, 1, data$ZSSS_9nRev)
+table(data$ZSSS_9nRev)
+
+table(data$ZSSS_14n)
+data$ZSSS_14nRevFalse <- data$ZSSS_14n
+data$ZSSS_14nRevFalse = ifelse(data$ZSSS_14n == 0, 2, data$ZSSS_14nRevFalse)
+data$ZSSS_14nRevFalse = ifelse(data$ZSSS_14n == 1, 0, data$ZSSS_14nRevFalse)
+table(data$ZSSS_14nRevFalse)
+data$ZSSS_14nRev <- data$ZSSS_14nRevFalse
+data$ZSSS_14nRev <- ifelse(data$ZSSS_14nRevFalse == 2, 1, data$ZSSS_14nRev)
+table(data$ZSSS_14nRev)
+
+table(data$ZSSS_18n)
+data$ZSSS_18nRevFalse <- data$ZSSS_18n
+data$ZSSS_18nRevFalse = ifelse(data$ZSSS_18n == 0, 2, data$ZSSS_18nRevFalse)
+data$ZSSS_18nRevFalse = ifelse(data$ZSSS_18n == 1, 0, data$ZSSS_18nRevFalse)
+table(data$ZSSS_18nRevFalse)
+data$ZSSS_18nRev <- data$ZSSS_18nRevFalse
+data$ZSSS_18nRev <- ifelse(data$ZSSS_18nRevFalse == 2, 1, data$ZSSS_18nRev)
+table(data$ZSSS_18nRev)
+
+table(data$ZSSS_22n)
+data$ZSSS_22nRevFalse <- data$ZSSS_22n
+data$ZSSS_22nRevFalse = ifelse(data$ZSSS_22n == 0, 2, data$ZSSS_22nRevFalse)
+data$ZSSS_22nRevFalse = ifelse(data$ZSSS_22n == 1, 0, data$ZSSS_22nRevFalse)
+table(data$ZSSS_22nRevFalse)
+data$ZSSS_22nRev <- data$ZSSS_22nRevFalse
+data$ZSSS_22nRev <- ifelse(data$ZSSS_22nRevFalse == 2, 1, data$ZSSS_22nRev)
+table(data$ZSSS_22nRev)
+
+
+```
+
+## Scales 
+### SRP
+```{r}
+
+# SRP Tot
+
+data$SRPTotalScore <- (data$SRP_01n + data$SRP_02n + data$SRP_03n + data$SRP_04n +  data$SRP5nRev + data$SRP6nRev + data$SRP_07n + 
+                  data$SRP_08n + data$SRP_09n + data$SRP_10n + data$SRP11nRev + data$SRP_12n + data$SRP_13n + data$SRP14nRev +
+                  data$SRP_15n + data$SRP16nRev + data$SRP_17n + data$SRP18nRev + data$SRP19nRev + data$SRP_20n + data$SRP21nRev +
+                  data$SRP22nRev + data$SRP23nRev + data$SRP24nRev + data$SRP25nRev + data$SRP26nRev + data$SRP_27n + data$SRP_28n + 
+                  data$SRP_29n + data$SRP_30n + data$SRP31nRev + data$SRP_32n + data$SRP_33n + data$SRP34nRev +  data$SRP_35n + 
+                  data$SRP36nRev +  data$SRP_37n + data$SRP38nRev + data$SRP_39n + data$SRP_40n + data$SRP_41n + data$SRP_42n + 
+                  data$SRP_43n + data$SRP44nRev + data$SRP_45n + data$SRP46nRev + data$SRP47nRev + data$SRP_48n + data$SRP_49n + 
+                  data$SRP_50n + data$SRP_51n + data$SRP_52n + data$SRP_53n + data$SRP_54n + data$SRP_55n +  data$SRP_56n +
+                  data$SRP_57n + data$SRP_58n + data$SRP_59n + data$SRP_60n + data$SRP61nRev + data$SRP_62n + data$SRP_63n + data$SRP_64n)
+
+
+
+#SRP IPM 
+
+data$SRPIPMTotal <- (data$SRP_03n + data$SRP_08n + data$SRP_13n + data$SRP16nRev + data$SRP_20n + data$SRP24nRev + data$SRP_27n + data$SRP31nRev + 
+                  data$SRP_35n + data$SRP38nRev + data$SRP_41n + data$SRP_45n + data$SRP_50n + data$SRP_54n + data$SRP_58n + data$SRP61nRev)
+
+
+
+# SRP Callous 
+
+data$SRPCATotal <- (data$SRP_02n + data$SRP_07n + data$SRP11nRev + data$SRP_15n + data$SRP19nRev + data$SRP23nRev + data$SRP26nRev + data$SRP_30n + data$SRP_33n +  data$SRP_37n + data$SRP_40n + data$SRP44nRev + data$SRP_48n + data$SRP_53n + data$SRP_56n + data$SRP_60n)
+
+
+
+
+
+#SRP lifestyle 
+
+data$SRPELSTotal <- (data$SRP_01n + data$SRP_04n + data$SRP_09n + data$SRP14nRev + data$SRP_17n + data$SRP22nRev + data$SRP25nRev + data$SRP_28n + data$SRP_32n + data$SRP36nRev +  data$SRP_39n + data$SRP_42n + data$SRP47nRev + data$SRP_51n +data$SRP_55n + data$SRP_59n)
+
+
+# SRP Antisocial 
+
+
+data$SRPASBTotal <-  (data$SRP5nRev + data$SRP6nRev + data$SRP_10n + data$SRP_12n + data$SRP18nRev + data$SRP21nRev + data$SRP_29n + data$SRP34nRev + data$SRP_43n + data$SRP46nRev + data$SRP_49n + data$SRP_52n + data$SRP_57n + data$SRP_62n + data$SRP_63n + data$SRP_64n)
+
+
+
+
+```
+
+### ICU 
+
+```{r}
+
+# ICU total 
+
+data$ICUTotScore <- (data$ICU_1nRev + data$ICU_2n + data$ICU_3nRev + data$ICU_4n + data$ICU_5nRev + data$ICU_6n + 
+                  data$ICU_7n + data$ICU_8nRev + data$ICU_9n + data$ICU_10n + data$ICU_11n + data$ICU_12n + data$ICU_13nRev +
+                  data$ICU_14nRev + data$ICU_15nRev + data$ICU_16nRev + data$ICU_17nRev + data$ICU_18n + data$ICU_19nRev +
+                  data$ICU_20n + data$ICU_21n + data$ICU_22n + data$ICU_23nRev + data$ICU_24nRev)
+
+
+# ICU Cal 
+
+data$ICUCalTotalScore <- (data$ICU_4n + data$ICU_8nRev + data$ICU_9n + data$ICU_18n + data$ICU_11n +  data$ICU_21n + data$ICU_7n + data$ICU_20n +
+                  data$ICU_2n + data$ICU_12n + data$ICU_10n)
+
+
+
+
+
+# ICU Uncare
+
+data$ICUUncareTotalScore <- (data$ICU_15nRev + data$ICU_23nRev + data$ICU_16nRev + data$ICU_3nRev + data$ICU_17nRev + data$ICU_24nRev +
+                     data$ICU_13nRev + data$ICU_5nRev)
+
+
+
+
+# ICU  Unemo 
+
+
+data$ICUUnemoTotal <- (data$ICU_1nRev + data$ICU_19nRev + data$ICU_6n + data$ICU_22n + data$ICU_14nRev)
+
+
+
+
+
+```
+
+### LSRP
+
+```{r}
+
+# Total
+
+data$LevTotalScore <- (data$Lev_01n + data$Lev_02n + data$Lev_03nRev + data$Lev_04n + data$Lev_05n + data$Lev_06n + data$Lev_07nRev + data$Lev_08n +  data$Lev_09n + data$Lev_10nRev + data$Lev_11n + data$Lev_12n + data$Lev_13nRev + data$Lev_16n + data$Lev_17n + data$Lev_18n + data$Lev_19n + data$Lev_20n + data$Lev_21nRev + data$Lev_22n + data$Lev_23n + data$Lev_24n + data$Lev_25n + data$Lev_26nRev)
+
+
+
+# Primary 
+
+
+data$LevPrimTotalScore <- (data$Lev_02n + data$Lev_04n + data$Lev_07nRev + data$Lev_09n + data$Lev_11n + data$Lev_12n + data$Lev_13nRev +
+                   data$Lev_17n + data$Lev_19n +  data$Lev_21nRev + data$Lev_22n + data$Lev_23n + data$Lev_24n + data$Lev_25n + data$Lev_26nRev)
+
+
+
+
+
+
+# Seconnday 
+
+data$LevSecTotalScore <- (data$Lev_01n + data$Lev_03nRev + data$Lev_05n + data$Lev_06n + data$Lev_08n + data$Lev_10nRev + data$Lev_16n + data$Lev_18n + data$Lev_20n)
+
+
+
+
+
+
+```
+
+### ZSSS
+
+```{r}
+
+# Total 
+
+data$SSSTotalScore <-  (data$ZSSS_1nRev + data$ZSSS_2n + data$ZSSS_3nRev + data$ZSSS_4n + data$ZSSS_5nRev + data$ZSSS_6nRev + data$ZSSS_7n + data$ZSSS_8nRev + data$ZSSS_9nRev + data$ZSSS_10n + data$ZSSS_11n + data$ZSSS_12n + data$ZSSS_13n + data$ZSSS_14nRev + data$ZSSS_15n + data$ZSSS_16nRev + data$ZSSS_17nRev + data$ZSSS_18nRev + data$ZSSS_19n + data$ZSSS_20n +  data$ZSSS_21n + data$ZSSS_22nRev + data$ZSSS_23nRev + data$ZSSS_24nRev + data$ZSSS_25n + data$ZSSS_26n + data$ZSSS_27n + data$ZSSS_28nRev + data$ZSSS_29nRev + data$ZSSS_30n + data$ZSSS_31n + data$ZSSS_32nRev + data$ZSSS_33n + data$ZSSS_34nRev + data$ZSSS_35n + data$ZSSS_36nRev + data$ZSSS_37n + data$ZSSS_38n + data$ZSSS_39nRev + data$ZSSS_40n)
+
+
+
+
+
+
+# Disinhibited 
+
+data$SSSDISTotal <- (data$ZSSS_12n + data$ZSSS_13n + data$ZSSS_25n + data$ZSSS_30n + data$ZSSS_33n + data$ZSSS_35n +
+                  data$ZSSS_1nRev + data$ZSSS_29nRev + data$ZSSS_32nRev + data$ZSSS_36nRev)
+
+
+
+
+# Boredom 
+
+data$SSSBorTotal <- (data$ZSSS_2n + data$ZSSS_7n + data$ZSSS_15n + data$ZSSS_27n + data$ZSSS_31n + data$ZSSS_5nRev + data$ZSSS_8nRev + data$ZSSS_24nRev +
+                  data$ZSSS_34nRev + data$ZSSS_39nRev)
+
+
+
+
+# Thrill 
+data$SSSThrilTotal <- (data$ZSSS_11n + data$ZSSS_20n + data$ZSSS_21n + data$ZSSS_38n + data$ZSSS_40n + data$ZSSS_3nRev +
+                    data$ZSSS_16nRev + data$ZSSS_17nRev + data$ZSSS_23nRev + data$ZSSS_28nRev)
+
+
+
+
+# Exp 
+
+data$SSSExpTotal <- (data$ZSSS_4n + data$ZSSS_10n + data$ZSSS_19n + data$ZSSS_26n + data$ZSSS_37n + data$ZSSS_6nRev +
+                  data$ZSSS_9nRev + data$ZSSS_14nRev + data$ZSSS_18nRev + data$ZSSS_22nRev) 
+
+
+
+
+```
+
+
+## Autonomic Measures
+
+We excluded zero values from the analysis during the first 11 seconds and the final 30 seconds, as they likely resulted from slight hand movements by the participant during the phases. 
+
+### Resting Heart Rate
+
+```{r}
+
+data$HRbaseline <- (data$HRT_00_11 + data$HRT_00_12 +  data$HRT_00_13 +  data$HRT_00_14 + data$HRT_00_15 + data$HRT_00_16 +  data$HRT_00_17 +  data$HRT_00_18 + data$HRT_00_19 + data$HRT_00_20 +  data$HRT_00_21 +  data$HRT_00_22 + data$HRT_00_23 + data$HRT_00_24 +  data$HRT_00_25 + data$HRT_00_26 +  data$HRT_00_27 + data$HRT_00_28 +  data$HRT_00_29 +  data$HRT_00_30 +  data$HRT_00_31 + data$HRT_00_32 +  data$HRT_00_33 +  data$HRT_00_34 + data$HRT_00_35 + data$HRT_00_36 + data$HRT_00_37 +  data$HRT_00_38 +  data$HRT_00_39 + data$HRT_00_40 +  data$HRT_00_41 +  data$HRT_00_42 + data$HRT_00_43 + data$HRT_00_44 + data$HRT_00_45 +  data$HRT_00_46 +  data$HRT_00_47 +  data$HRT_00_48 + data$HRT_00_49 + data$HRT_00_50 +  data$HRT_00_51 +  data$HRT_00_52 +  data$HRT_00_53 + data$HRT_00_54 + data$HRT_00_55 + data$HRT_00_56 +  data$HRT_00_57	+  data$HRT_00_58 + data$HRT_00_59 +  data$HRT_01_00 +  data$HRT_01_01 +  data$HRT_01_02 + data$HRT_01_03 + data$HRT_01_04 + data$HRT_01_05 +  data$HRT_01_06 +  data$HRT_01_07 + data$HRT_01_08 +  data$HRT_01_09 +  data$HRT_01_10 +  data$HRT_01_11 + data$HRT_01_12	+ data$HRT_01_13 + data$HRT_01_14 +  data$HRT_01_15 +  data$HRT_01_16 +  data$HRT_01_17 +  data$HRT_01_18 + data$HRT_01_19 +  data$HRT_01_20 +  data$HRT_01_21 +  data$HRT_01_22 + data$HRT_01_23 +  data$HRT_01_24 + data$HRT_01_25 +  data$HRT_01_26 +  data$HRT_01_27 + data$HRT_01_28 +  data$HRT_01_29 +  data$HRT_01_30 +  data$HRT_01_31 + data$HRT_01_32 +  data$HRT_01_33 + data$HRT_01_34 +  data$HRT_01_35 +  data$HRT_01_36 + data$HRT_01_37 +  data$HRT_01_38 +  data$HRT_01_39 +  data$HRT_01_40 +  data$HRT_01_41 + data$HRT_01_42 + data$HRT_01_43 + data$HRT_01_44 +  data$HRT_01_45 + data$HRT_01_46 + data$HRT_01_47 +  data$HRT_01_48 +  data$HRT_01_49 +  data$HRT_01_50 +  data$HRT_01_51 + data$HRT_01_52 + data$HRT_01_53 + data$HRT_01_54 +  data$HRT_01_55 +  data$HRT_01_56 +  data$HRT_01_57 + data$HRT_01_58 +  data$HRT_01_59 +  data$HRT_02_00 +  data$HRT_02_01 + data$HRT_02_02 + data$HRT_02_03 +  data$HRT_02_04 +  data$HRT_02_05 +  data$HRT_02_06 +  data$HRT_02_07 + data$HRT_02_08 + data$HRT_02_09 +  data$HRT_02_10 +  data$HRT_02_11 +  data$HRT_02_12 + data$HRT_02_13 +  data$HRT_02_14 +  data$HRT_02_15 + data$HRT_02_16 +  data$HRT_02_17 + data$HRT_02_18 +  data$HRT_02_19 + data$HRT_02_20 +  data$HRT_02_21 +  data$HRT_02_22 + data$HRT_02_23 +  data$HRT_02_24 + data$HRT_02_25 +  data$HRT_02_26 +  data$HRT_02_27 +  data$HRT_02_28 + data$HRT_02_29)/140
+
+
+```
+
+### Resting Skin Conductance
+
+```{r}
+
+data$SCbaseline <- (data$SCT_00_11 + data$SCT_00_12 + data$SCT_00_13 + data$SCT_00_14 + data$SCT_00_15 + data$SCT_00_16 + data$SCT_00_17 + data$SCT_00_18 + data$SCT_00_19 + data$SCT_00_20 + data$SCT_00_21 + data$SCT_00_22 + data$SCT_00_23 + data$SCT_00_24 + data$SCT_00_25 + data$SCT_00_26 + data$SCT_00_27 + data$SCT_00_28 + data$SCT_00_29 + data$SCT_00_30 + data$SCT_00_31 + data$SCT_00_32 + data$SCT_00_33 + data$SCT_00_34 + data$SCT_00_35 + data$SCT_00_36 + data$SCT_00_37 + data$SCT_00_38 + data$SCT_00_39 + data$SCT_00_40 + data$SCT_00_41 + data$SCT_00_42 + data$SCT_00_43 + data$SCT_00_44 + data$SCT_00_45 + data$SCT_00_46 + data$SCT_00_47 + data$SCT_00_48 + data$SCT_00_49 + data$SCT_00_50 + data$SCT_00_51 + data$SCT_00_52 + data$SCT_00_53 + data$SCT_00_54 + data$SCT_00_55 + data$SCT_00_56 + data$SCT_00_57	+ data$SCT_00_58 + data$SCT_00_59 + data$SCT_01_00 + data$SCT_01_01 + data$SCT_01_02 + data$SCT_01_03 + data$SCT_01_04 + data$SCT_01_05 + data$SCT_01_06 + data$SCT_01_07 + data$SCT_01_08 + data$SCT_01_09 + data$SCT_01_10 + data$SCT_01_11 + data$SCT_01_12 + data$SCT_01_13 + data$SCT_01_14 + data$SCT_01_15 + data$SCT_01_16 + data$SCT_01_17 + data$SCT_01_18 + data$SCT_01_19 + data$SCT_01_20 + data$SCT_01_21 + data$SCT_01_22 + data$SCT_01_23 + data$SCT_01_24 + data$SCT_01_25 + data$SCT_01_26 + data$SCT_01_27 + data$SCT_01_28 + data$SCT_01_29 + data$SCT_01_30 + data$SCT_01_31 + data$SCT_01_32 + data$SCT_01_33 + data$SCT_01_34 + data$SCT_01_35 + data$SCT_01_36 + data$SCT_01_37 + data$SCT_01_38 + data$SCT_01_39 + data$SCT_01_40 + data$SCT_01_41 + data$SCT_01_42 + data$SCT_01_43 + data$SCT_01_44 + data$SCT_01_45 + data$SCT_01_46 + data$SCT_01_47 + data$SCT_01_48 + data$SCT_01_49 + data$SCT_01_50 + data$SCT_01_51 + data$SCT_01_52 + data$SCT_01_53 + data$SCT_01_54 + data$SCT_01_55 + data$SCT_01_56 + data$SCT_01_57 + data$SCT_01_58 + data$SCT_01_59 + data$SCT_02_00 + data$SCT_02_01 + data$SCT_02_02 + data$SCT_02_03 + data$SCT_02_04 + data$SCT_02_05 + data$SCT_02_06 + data$SCT_02_07 + data$SCT_02_08 + data$SCT_02_09 + data$SCT_02_10 + data$SCT_02_11 + data$SCT_02_12 + data$SCT_02_13 + data$SCT_02_14 + data$SCT_02_15 + data$SCT_02_16 + data$SCT_02_17 + data$SCT_02_18 + data$SCT_02_19 + data$SCT_02_20 + data$SCT_02_21 + data$SCT_02_22 + data$SCT_02_23 + data$SCT_02_24 + data$SCT_02_25 + data$SCT_02_26 + data$SCT_02_27 + data$SCT_02_28 + data$SCT_02_29)/140
+
+
+```
+
+
+
+The formula for the AUC code below can be found [here](https://pubmed.ncbi.nlm.nih.gov/12892658/). 
+
+### AUC Social Stressor
+
+Within the HR measures for each stress paradigm, a small number of individuals had zero values in random columns (typically 1-4 columns or seconds). These zeros likely resulted from hand movements during the task. To retain these cases in the analysis, we replaced the zero values with the mean of the values from the second before and the second after the zero value.
+
+#### HR Combined
+
+```{r}
+
+data$SSHRCombAUCg <- (data$HrStr_00_01 + data$HrStr_00_00)/2 + (data$HrStr_00_02 + data$HrStr_00_01)/2 + (data$HrStr_00_03 + data$HrStr_00_02)/2 + (data$HrStr_00_04 + data$HrStr_00_03)/2 +
+  (data$HrStr_00_05 + data$HrStr_00_04)/2 + (data$HrStr_00_06 + data$HrStr_00_05)/2 + (data$HrStr_00_07 + data$HrStr_00_06)/2 + (data$HrStr_00_08 + data$HrStr_00_07)/2 + (data$HrStr_00_09 + data$HrStr_00_08)/2 + 
+  (data$HrStr_00_10 + data$HrStr_00_09)/2 + (data$HrStr_00_11 + data$HrStr_00_10)/2 + (data$HrStr_00_12 + data$HrStr_00_11)/2 + (data$HrStr_00_13 + data$HrStr_00_12)/2 + (data$HrStr_00_14 + data$HrStr_00_13)/2 +
+  (data$HrStr_00_15 + data$HrStr_00_14)/2 + (data$HrStr_00_16 + data$HrStr_00_15)/2 + (data$HrStr_00_17 + data$HrStr_00_16)/2 + (data$HrStr_00_18 + data$HrStr_00_17)/2 + (data$HrStr_00_19 + data$HrStr_00_18)/2 +
+  (data$HrStr_00_20 + data$HrStr_00_19)/2 + (data$HrStr_00_21 + data$HrStr_00_20)/2 + (data$HrStr_00_22 + data$HrStr_00_21)/2 + (data$HrStr_00_23 + data$HrStr_00_22)/2 + (data$HrStr_00_24 + data$HrStr_00_23)/2 +
+  (data$HrStr_00_25 + data$HrStr_00_24)/2 + (data$HrStr_00_26 + data$HrStr_00_25)/2 + (data$HrStr_00_27 + data$HrStr_00_26)/2 + (data$HrStr_00_28 + data$HrStr_00_27)/2 + (data$HrStr_00_29 + data$HrStr_00_28)/2 +
+  (data$HrStr_00_30 + data$HrStr_00_29)/2 + (data$HrStr_00_31 + data$HrStr_00_30)/2 + (data$HrStr_00_32 + data$HrStr_00_31)/2 + (data$HrStr_00_33 + data$HrStr_00_32)/2 + (data$HrStr_00_34 + data$HrStr_00_33)/2 +
+  (data$HrStr_00_35 + data$HrStr_00_34)/2 + (data$HrStr_00_36 + data$HrStr_00_35)/2 + (data$HrStr_00_37 + data$HrStr_00_36)/2 + (data$HrStr_00_38 + data$HrStr_00_37)/2 + (data$HrStr_00_39 + data$HrStr_00_38)/2 +
+  (data$HrStr_00_40 + data$HrStr_00_39)/2 + (data$HrStr_00_41 + data$HrStr_00_40)/2 + (data$HrStr_00_42 + data$HrStr_00_41)/2 + (data$HrStr_00_43 + data$HrStr_00_42)/2 + (data$HrStr_00_44 + data$HrStr_00_43)/2 +
+  (data$HrStr_00_45 + data$HrStr_00_44)/2 + (data$HrStr_00_46 + data$HrStr_00_45)/2 + (data$HrStr_00_47 + data$HrStr_00_46)/2 + (data$HrStr_00_48 + data$HrStr_00_47)/2 + (data$HrStr_00_49 + data$HrStr_00_48)/2 +
+  (data$HrStr_00_50 + data$HrStr_00_49)/2 + (data$HrStr_00_51 + data$HrStr_00_50)/2 + (data$HrStr_00_52 + data$HrStr_00_51)/2 + (data$HrStr_00_53 + data$HrStr_00_52)/2 + (data$HrStr_00_54 + data$HrStr_00_53)/2 +
+  (data$HrStr_00_55 + data$HrStr_00_54)/2 + (data$HrStr_00_56 + data$HrStr_00_55)/2 + (data$HrStr_00_57 + data$HrStr_00_56)/2 + (data$HrStr_00_58 + data$HrStr_00_57)/2 + (data$HrStr_00_59 + data$HrStr_00_58)/2 +
+  (data$HrStr_01_00 + data$HrStr_00_59)/2 +
+  (data$HrStr_01_01 + data$HrStr_01_00)/2 + (data$HrStr_01_02 + data$HrStr_01_01)/2 + (data$HrStr_01_03 + data$HrStr_01_02)/2 + (data$HrStr_01_04 + data$HrStr_01_03)/2 +
+  (data$HrStr_01_05 + data$HrStr_01_04)/2 + (data$HrStr_01_06 + data$HrStr_01_05)/2 + (data$HrStr_01_07 + data$HrStr_01_06)/2 + (data$HrStr_01_08 + data$HrStr_01_07)/2 + (data$HrStr_01_09 + data$HrStr_01_08)/2 + 
+  (data$HrStr_01_10 + data$HrStr_01_09)/2 + (data$HrStr_01_11 + data$HrStr_01_10)/2 + (data$HrStr_01_12 + data$HrStr_01_11)/2 + (data$HrStr_01_13 + data$HrStr_01_12)/2 + (data$HrStr_01_14 + data$HrStr_01_13)/2 +
+  (data$HrStr_01_15 + data$HrStr_01_14)/2 + (data$HrStr_01_16 + data$HrStr_01_15)/2 + (data$HrStr_01_17 + data$HrStr_01_16)/2 + (data$HrStr_01_18 + data$HrStr_01_17)/2 + (data$HrStr_01_19 + data$HrStr_01_18)/2 +
+  (data$HrStr_01_20 + data$HrStr_01_19)/2 + (data$HrStr_01_21 + data$HrStr_01_20)/2 + (data$HrStr_01_22 + data$HrStr_01_21)/2 + (data$HrStr_01_23 + data$HrStr_01_22)/2 + (data$HrStr_01_24 + data$HrStr_01_23)/2 +
+  (data$HrStr_01_25 + data$HrStr_01_24)/2 + (data$HrStr_01_26 + data$HrStr_01_25)/2 + (data$HrStr_01_27 + data$HrStr_01_26)/2 + (data$HrStr_01_28 + data$HrStr_01_27)/2 + (data$HrStr_01_29 + data$HrStr_01_28)/2 +
+  (data$HrStr_01_30 + data$HrStr_01_29)/2 + (data$HrStr_01_31 + data$HrStr_01_30)/2 + (data$HrStr_01_32 + data$HrStr_01_31)/2 + (data$HrStr_01_33 + data$HrStr_01_32)/2 + (data$HrStr_01_34 + data$HrStr_01_33)/2 +
+  (data$HrStr_01_35 + data$HrStr_01_34)/2 + (data$HrStr_01_36 + data$HrStr_01_35)/2 + (data$HrStr_01_37 + data$HrStr_01_36)/2 + (data$HrStr_01_38 + data$HrStr_01_37)/2 + (data$HrStr_01_39 + data$HrStr_01_38)/2 +
+  (data$HrStr_01_40 + data$HrStr_01_39)/2 + (data$HrStr_01_41 + data$HrStr_01_40)/2 + (data$HrStr_01_42 + data$HrStr_01_41)/2 + (data$HrStr_01_43 + data$HrStr_01_42)/2 + (data$HrStr_01_44 + data$HrStr_01_43)/2 +
+  (data$HrStr_01_45 + data$HrStr_01_44)/2 + (data$HrStr_01_46 + data$HrStr_01_45)/2 + (data$HrStr_01_47 + data$HrStr_01_46)/2 + (data$HrStr_01_48 + data$HrStr_01_47)/2 + (data$HrStr_01_49 + data$HrStr_01_48)/2 +
+  (data$HrStr_01_50 + data$HrStr_01_49)/2 + (data$HrStr_01_51 + data$HrStr_01_50)/2 + (data$HrStr_01_52 + data$HrStr_01_51)/2 + (data$HrStr_01_53 + data$HrStr_01_52)/2 + (data$HrStr_01_54 + data$HrStr_01_53)/2 +
+  (data$HrStr_01_55 + data$HrStr_01_54)/2 + (data$HrStr_01_56 + data$HrStr_01_55)/2 + (data$HrStr_01_57 + data$HrStr_01_56)/2 + (data$HrStr_01_58 + data$HrStr_01_57)/2 + (data$HrStr_01_59 + data$HrStr_01_58)/2 +
+  (data$HrStr_02_00 + data$HrStr_01_59)/2 +
+  (data$HrStr_02_01 + data$HrStr_02_00)/2 + (data$HrStr_02_02 + data$HrStr_02_01)/2 + (data$HrStr_02_03 + data$HrStr_02_02)/2 + (data$HrStr_02_04 + data$HrStr_02_03)/2 +
+  (data$HrStr_02_05 + data$HrStr_02_04)/2 + (data$HrStr_02_06 + data$HrStr_02_05)/2 + (data$HrStr_02_07 + data$HrStr_02_06)/2 + (data$HrStr_02_08 + data$HrStr_02_07)/2 + (data$HrStr_02_09 + data$HrStr_02_08)/2 + 
+  (data$HrStr_02_10 + data$HrStr_02_09)/2 + (data$HrStr_02_11 + data$HrStr_02_10)/2 + (data$HrStr_02_12 + data$HrStr_02_11)/2 + (data$HrStr_02_13 + data$HrStr_02_12)/2 + (data$HrStr_02_14 + data$HrStr_02_13)/2 +
+  (data$HrStr_02_15 + data$HrStr_02_14)/2 + (data$HrStr_02_16 + data$HrStr_02_15)/2 + (data$HrStr_02_17 + data$HrStr_02_16)/2 + (data$HrStr_02_18 + data$HrStr_02_17)/2 + (data$HrStr_02_19 + data$HrStr_02_18)/2 +
+  (data$HrStr_02_20 + data$HrStr_02_19)/2 + (data$HrStr_02_21 + data$HrStr_02_20)/2 + (data$HrStr_02_22 + data$HrStr_02_21)/2 + (data$HrStr_02_23 + data$HrStr_02_22)/2 + (data$HrStr_02_24 + data$HrStr_02_23)/2 +
+  (data$HrStr_02_25 + data$HrStr_02_24)/2 + (data$HrStr_02_26 + data$HrStr_02_25)/2 + (data$HrStr_02_27 + data$HrStr_02_26)/2 + (data$HrStr_02_28 + data$HrStr_02_27)/2 + (data$HrStr_02_29 + data$HrStr_02_28)/2 +
+  (data$HrStr_02_30 + data$HrStr_02_29)/2 + (data$HrStr_02_31 + data$HrStr_02_30)/2 + (data$HrStr_02_32 + data$HrStr_02_31)/2 + (data$HrStr_02_33 + data$HrStr_02_32)/2 + (data$HrStr_02_34 + data$HrStr_02_33)/2 +
+  (data$HrStr_02_35 + data$HrStr_02_34)/2 + (data$HrStr_02_36 + data$HrStr_02_35)/2 + (data$HrStr_02_37 + data$HrStr_02_36)/2 + (data$HrStr_02_38 + data$HrStr_02_37)/2 + (data$HrStr_02_39 + data$HrStr_02_38)/2 +
+  (data$HrStr_02_40 + data$HrStr_02_39)/2 + (data$HrStr_02_41 + data$HrStr_02_40)/2 + (data$HrStr_02_42 + data$HrStr_02_41)/2 + (data$HrStr_02_43 + data$HrStr_02_42)/2 + (data$HrStr_02_44 + data$HrStr_02_43)/2 +
+  (data$HrStr_02_45 + data$HrStr_02_44)/2 + (data$HrStr_02_46 + data$HrStr_02_45)/2 + (data$HrStr_02_47 + data$HrStr_02_46)/2 + (data$HrStr_02_48 + data$HrStr_02_47)/2 + (data$HrStr_02_49 + data$HrStr_02_48)/2 +
+  (data$HrStr_02_50 + data$HrStr_02_49)/2 + (data$HrStr_02_51 + data$HrStr_02_50)/2 + (data$HrStr_02_52 + data$HrStr_02_51)/2 + (data$HrStr_02_53 + data$HrStr_02_52)/2 + (data$HrStr_02_54 + data$HrStr_02_53)/2 +
+  (data$HrStr_02_55 + data$HrStr_02_54)/2 + (data$HrStr_02_56 + data$HrStr_02_55)/2 + (data$HrStr_02_57 + data$HrStr_02_56)/2 + (data$HrStr_02_58 + data$HrStr_02_57)/2 + (data$HrStr_02_59 + data$HrStr_02_58)/2 +
+  (data$HrStr_03_01 + data$HrStr_03_00)/2 + (data$HrStr_03_02 + data$HrStr_03_01)/2 + (data$HrStr_03_03 + data$HrStr_03_02)/2 + (data$HrStr_03_04 + data$HrStr_03_03)/2 +
+  (data$HrStr_03_05 + data$HrStr_03_04)/2 + (data$HrStr_03_06 + data$HrStr_03_05)/2 + (data$HrStr_03_07 + data$HrStr_03_06)/2 + (data$HrStr_03_08 + data$HrStr_03_07)/2 + (data$HrStr_03_09 + data$HrStr_03_08)/2 + 
+  (data$HrStr_03_10 + data$HrStr_03_09)/2 + (data$HrStr_03_11 + data$HrStr_03_10)/2 + (data$HrStr_03_12 + data$HrStr_03_11)/2 + (data$HrStr_03_13 + data$HrStr_03_12)/2 + (data$HrStr_03_14 + data$HrStr_03_13)/2 +
+  (data$HrStr_03_15 + data$HrStr_03_14)/2 + (data$HrStr_03_16 + data$HrStr_03_15)/2 + (data$HrStr_03_17 + data$HrStr_03_16)/2 + (data$HrStr_03_18 + data$HrStr_03_17)/2 + (data$HrStr_03_19 + data$HrStr_03_18)/2 +
+  (data$HrStr_03_20 + data$HrStr_03_19)/2 + (data$HrStr_03_21 + data$HrStr_03_20)/2 + (data$HrStr_03_22 + data$HrStr_03_21)/2 + (data$HrStr_03_23 + data$HrStr_03_22)/2 + (data$HrStr_03_24 + data$HrStr_03_23)/2 +
+  (data$HrStr_03_25 + data$HrStr_03_24)/2 + (data$HrStr_03_26 + data$HrStr_03_25)/2 + (data$HrStr_03_27 + data$HrStr_03_26)/2 + (data$HrStr_03_28 + data$HrStr_03_27)/2 + (data$HrStr_03_29 + data$HrStr_03_28)/2 +
+  (data$HrStr_03_30 + data$HrStr_03_29)/2 + (data$HrStr_03_31 + data$HrStr_03_30)/2 + (data$HrStr_03_32 + data$HrStr_03_31)/2 + (data$HrStr_03_33 + data$HrStr_03_32)/2 + (data$HrStr_03_34 + data$HrStr_03_33)/2 +
+  (data$HrStr_03_35 + data$HrStr_03_34)/2 + (data$HrStr_03_36 + data$HrStr_03_35)/2 + (data$HrStr_03_37 + data$HrStr_03_36)/2 + (data$HrStr_03_38 + data$HrStr_03_37)/2 + (data$HrStr_03_39 + data$HrStr_03_38)/2 +
+  (data$HrStr_03_40 + data$HrStr_03_39)/2 + (data$HrStr_03_41 + data$HrStr_03_40)/2 + (data$HrStr_03_42 + data$HrStr_03_41)/2 + (data$HrStr_03_43 + data$HrStr_03_42)/2 + (data$HrStr_03_44 + data$HrStr_03_43)/2 +
+  (data$HrStr_03_45 + data$HrStr_03_44)/2 + (data$HrStr_03_46 + data$HrStr_03_45)/2 + (data$HrStr_03_47 + data$HrStr_03_46)/2 + (data$HrStr_03_48 + data$HrStr_03_47)/2 + (data$HrStr_03_49 + data$HrStr_03_48)/2 +
+  (data$HrStr_03_50 + data$HrStr_03_49)/2 + (data$HrStr_03_51 + data$HrStr_03_50)/2 + (data$HrStr_03_52 + data$HrStr_03_51)/2 + (data$HrStr_03_53 + data$HrStr_03_52)/2 + (data$HrStr_03_54 + data$HrStr_03_53)/2 +
+  (data$HrStr_03_55 + data$HrStr_03_54)/2 + (data$HrStr_03_56 + data$HrStr_03_55)/2 + (data$HrStr_03_57 + data$HrStr_03_56)/2 + (data$HrStr_03_58 + data$HrStr_03_57)/2 + (data$HrStr_03_59 + data$HrStr_03_58)/2 
+
+data$SSHRCombAUCi <- data$SSHRCombAUCg - (239 * data$HRbaseline)
+
+```
+
+#### SC Combined
+
+```{r}
+
+data$SSSCCombAUCg <-(data$ScStr_00_01 + data$ScStr_00_00)/2 + (data$ScStr_00_02 + data$ScStr_00_01)/2 + (data$ScStr_00_03 + data$ScStr_00_02)/2 + (data$ScStr_00_04 + data$ScStr_00_03)/2 +
+  (data$ScStr_00_05 + data$ScStr_00_04)/2 + (data$ScStr_00_06 + data$ScStr_00_05)/2 + (data$ScStr_00_07 + data$ScStr_00_06)/2 + (data$ScStr_00_08 + data$ScStr_00_07)/2 + (data$ScStr_00_09 + data$ScStr_00_08)/2 + 
+  (data$ScStr_00_10 + data$ScStr_00_09)/2 + (data$ScStr_00_11 + data$ScStr_00_10)/2 + (data$ScStr_00_12 + data$ScStr_00_11)/2 + (data$ScStr_00_13 + data$ScStr_00_12)/2 + (data$ScStr_00_14 + data$ScStr_00_13)/2 +
+  (data$ScStr_00_15 + data$ScStr_00_14)/2 + (data$ScStr_00_16 + data$ScStr_00_15)/2 + (data$ScStr_00_17 + data$ScStr_00_16)/2 + (data$ScStr_00_18 + data$ScStr_00_17)/2 + (data$ScStr_00_19 + data$ScStr_00_18)/2 +
+  (data$ScStr_00_20 + data$ScStr_00_19)/2 + (data$ScStr_00_21 + data$ScStr_00_20)/2 + (data$ScStr_00_22 + data$ScStr_00_21)/2 + (data$ScStr_00_23 + data$ScStr_00_22)/2 + (data$ScStr_00_24 + data$ScStr_00_23)/2 +
+  (data$ScStr_00_25 + data$ScStr_00_24)/2 + (data$ScStr_00_26 + data$ScStr_00_25)/2 + (data$ScStr_00_27 + data$ScStr_00_26)/2 + (data$ScStr_00_28 + data$ScStr_00_27)/2 + (data$ScStr_00_29 + data$ScStr_00_28)/2 +
+  (data$ScStr_00_30 + data$ScStr_00_29)/2 + (data$ScStr_00_31 + data$ScStr_00_30)/2 + (data$ScStr_00_32 + data$ScStr_00_31)/2 + (data$ScStr_00_33 + data$ScStr_00_32)/2 + (data$ScStr_00_34 + data$ScStr_00_33)/2 +
+  (data$ScStr_00_35 + data$ScStr_00_34)/2 + (data$ScStr_00_36 + data$ScStr_00_35)/2 + (data$ScStr_00_37 + data$ScStr_00_36)/2 + (data$ScStr_00_38 + data$ScStr_00_37)/2 + (data$ScStr_00_39 + data$ScStr_00_38)/2 +
+  (data$ScStr_00_40 + data$ScStr_00_39)/2 + (data$ScStr_00_41 + data$ScStr_00_40)/2 + (data$ScStr_00_42 + data$ScStr_00_41)/2 + (data$ScStr_00_43 + data$ScStr_00_42)/2 + (data$ScStr_00_44 + data$ScStr_00_43)/2 +
+  (data$ScStr_00_45 + data$ScStr_00_44)/2 + (data$ScStr_00_46 + data$ScStr_00_45)/2 + (data$ScStr_00_47 + data$ScStr_00_46)/2 + (data$ScStr_00_48 + data$ScStr_00_47)/2 + (data$ScStr_00_49 + data$ScStr_00_48)/2 +
+  (data$ScStr_00_50 + data$ScStr_00_49)/2 + (data$ScStr_00_51 + data$ScStr_00_50)/2 + (data$ScStr_00_52 + data$ScStr_00_51)/2 + (data$ScStr_00_53 + data$ScStr_00_52)/2 + (data$ScStr_00_54 + data$ScStr_00_53)/2 +
+  (data$ScStr_00_55 + data$ScStr_00_54)/2 + (data$ScStr_00_56 + data$ScStr_00_55)/2 + (data$ScStr_00_57 + data$ScStr_00_56)/2 + (data$ScStr_00_58 + data$ScStr_00_57)/2 + (data$ScStr_00_59 + data$ScStr_00_58)/2 +
+  (data$ScStr_01_00 + data$ScStr_00_59)/2 + 
+  (data$ScStr_01_01 + data$ScStr_01_00)/2 + (data$ScStr_01_02 + data$ScStr_01_01)/2 + (data$ScStr_01_03 + data$ScStr_01_02)/2 + (data$ScStr_01_04 + data$ScStr_01_03)/2 +
+  (data$ScStr_01_05 + data$ScStr_01_04)/2 + (data$ScStr_01_06 + data$ScStr_01_05)/2 + (data$ScStr_01_07 + data$ScStr_01_06)/2 + (data$ScStr_01_08 + data$ScStr_01_07)/2 + (data$ScStr_01_09 + data$ScStr_01_08)/2 + 
+  (data$ScStr_01_10 + data$ScStr_01_09)/2 + (data$ScStr_01_11 + data$ScStr_01_10)/2 + (data$ScStr_01_12 + data$ScStr_01_11)/2 + (data$ScStr_01_13 + data$ScStr_01_12)/2 + (data$ScStr_01_14 + data$ScStr_01_13)/2 +
+  (data$ScStr_01_15 + data$ScStr_01_14)/2 + (data$ScStr_01_16 + data$ScStr_01_15)/2 + (data$ScStr_01_17 + data$ScStr_01_16)/2 + (data$ScStr_01_18 + data$ScStr_01_17)/2 + (data$ScStr_01_19 + data$ScStr_01_18)/2 +
+  (data$ScStr_01_20 + data$ScStr_01_19)/2 + (data$ScStr_01_21 + data$ScStr_01_20)/2 + (data$ScStr_01_22 + data$ScStr_01_21)/2 + (data$ScStr_01_23 + data$ScStr_01_22)/2 + (data$ScStr_01_24 + data$ScStr_01_23)/2 +
+  (data$ScStr_01_25 + data$ScStr_01_24)/2 + (data$ScStr_01_26 + data$ScStr_01_25)/2 + (data$ScStr_01_27 + data$ScStr_01_26)/2 + (data$ScStr_01_28 + data$ScStr_01_27)/2 + (data$ScStr_01_29 + data$ScStr_01_28)/2 +
+  (data$ScStr_01_30 + data$ScStr_01_29)/2 + (data$ScStr_01_31 + data$ScStr_01_30)/2 + (data$ScStr_01_32 + data$ScStr_01_31)/2 + (data$ScStr_01_33 + data$ScStr_01_32)/2 + (data$ScStr_01_34 + data$ScStr_01_33)/2 +
+  (data$ScStr_01_35 + data$ScStr_01_34)/2 + (data$ScStr_01_36 + data$ScStr_01_35)/2 + (data$ScStr_01_37 + data$ScStr_01_36)/2 + (data$ScStr_01_38 + data$ScStr_01_37)/2 + (data$ScStr_01_39 + data$ScStr_01_38)/2 +
+  (data$ScStr_01_40 + data$ScStr_01_39)/2 + (data$ScStr_01_41 + data$ScStr_01_40)/2 + (data$ScStr_01_42 + data$ScStr_01_41)/2 + (data$ScStr_01_43 + data$ScStr_01_42)/2 + (data$ScStr_01_44 + data$ScStr_01_43)/2 +
+  (data$ScStr_01_45 + data$ScStr_01_44)/2 + (data$ScStr_01_46 + data$ScStr_01_45)/2 + (data$ScStr_01_47 + data$ScStr_01_46)/2 + (data$ScStr_01_48 + data$ScStr_01_47)/2 + (data$ScStr_01_49 + data$ScStr_01_48)/2 +
+  (data$ScStr_01_50 + data$ScStr_01_49)/2 + (data$ScStr_01_51 + data$ScStr_01_50)/2 + (data$ScStr_01_52 + data$ScStr_01_51)/2 + (data$ScStr_01_53 + data$ScStr_01_52)/2 + (data$ScStr_01_54 + data$ScStr_01_53)/2 +
+  (data$ScStr_01_55 + data$ScStr_01_54)/2 + (data$ScStr_01_56 + data$ScStr_01_55)/2 + (data$ScStr_01_57 + data$ScStr_01_56)/2 + (data$ScStr_01_58 + data$ScStr_01_57)/2 + (data$ScStr_01_59 + data$ScStr_01_58)/2 +
+  (data$ScStr_02_00 + data$ScStr_01_59)/2 +
+  (data$ScStr_02_01 + data$ScStr_02_00)/2 + (data$ScStr_02_02 + data$ScStr_02_01)/2 + (data$ScStr_02_03 + data$ScStr_02_02)/2 + (data$ScStr_02_04 + data$ScStr_02_03)/2 +
+  (data$ScStr_02_05 + data$ScStr_02_04)/2 + (data$ScStr_02_06 + data$ScStr_02_05)/2 + (data$ScStr_02_07 + data$ScStr_02_06)/2 + (data$ScStr_02_08 + data$ScStr_02_07)/2 + (data$ScStr_02_09 + data$ScStr_02_08)/2 + 
+  (data$ScStr_02_10 + data$ScStr_02_09)/2 + (data$ScStr_02_11 + data$ScStr_02_10)/2 + (data$ScStr_02_12 + data$ScStr_02_11)/2 + (data$ScStr_02_13 + data$ScStr_02_12)/2 + (data$ScStr_02_14 + data$ScStr_02_13)/2 +
+  (data$ScStr_02_15 + data$ScStr_02_14)/2 + (data$ScStr_02_16 + data$ScStr_02_15)/2 + (data$ScStr_02_17 + data$ScStr_02_16)/2 + (data$ScStr_02_18 + data$ScStr_02_17)/2 + (data$ScStr_02_19 + data$ScStr_02_18)/2 +
+  (data$ScStr_02_20 + data$ScStr_02_19)/2 + (data$ScStr_02_21 + data$ScStr_02_20)/2 + (data$ScStr_02_22 + data$ScStr_02_21)/2 + (data$ScStr_02_23 + data$ScStr_02_22)/2 + (data$ScStr_02_24 + data$ScStr_02_23)/2 +
+  (data$ScStr_02_25 + data$ScStr_02_24)/2 + (data$ScStr_02_26 + data$ScStr_02_25)/2 + (data$ScStr_02_27 + data$ScStr_02_26)/2 + (data$ScStr_02_28 + data$ScStr_02_27)/2 + (data$ScStr_02_29 + data$ScStr_02_28)/2 +
+  (data$ScStr_02_30 + data$ScStr_02_29)/2 + (data$ScStr_02_31 + data$ScStr_02_30)/2 + (data$ScStr_02_32 + data$ScStr_02_31)/2 + (data$ScStr_02_33 + data$ScStr_02_32)/2 + (data$ScStr_02_34 + data$ScStr_02_33)/2 +
+  (data$ScStr_02_35 + data$ScStr_02_34)/2 + (data$ScStr_02_36 + data$ScStr_02_35)/2 + (data$ScStr_02_37 + data$ScStr_02_36)/2 + (data$ScStr_02_38 + data$ScStr_02_37)/2 + (data$ScStr_02_39 + data$ScStr_02_38)/2 +
+  (data$ScStr_02_40 + data$ScStr_02_39)/2 + (data$ScStr_02_41 + data$ScStr_02_40)/2 + (data$ScStr_02_42 + data$ScStr_02_41)/2 + (data$ScStr_02_43 + data$ScStr_02_42)/2 + (data$ScStr_02_44 + data$ScStr_02_43)/2 +
+  (data$ScStr_02_45 + data$ScStr_02_44)/2 + (data$ScStr_02_46 + data$ScStr_02_45)/2 + (data$ScStr_02_47 + data$ScStr_02_46)/2 + (data$ScStr_02_48 + data$ScStr_02_47)/2 + (data$ScStr_02_49 + data$ScStr_02_48)/2 +
+  (data$ScStr_02_50 + data$ScStr_02_49)/2 + (data$ScStr_02_51 + data$ScStr_02_50)/2 + (data$ScStr_02_52 + data$ScStr_02_51)/2 + (data$ScStr_02_53 + data$ScStr_02_52)/2 + (data$ScStr_02_54 + data$ScStr_02_53)/2 +
+  (data$ScStr_02_55 + data$ScStr_02_54)/2 + (data$ScStr_02_56 + data$ScStr_02_55)/2 + (data$ScStr_02_57 + data$ScStr_02_56)/2 + (data$ScStr_02_58 + data$ScStr_02_57)/2 + (data$ScStr_02_59 + data$ScStr_02_58)/2 +
+  (data$ScStr_03_00 + data$ScStr_02_59)/2 +
+  (data$ScStr_03_01 + data$ScStr_03_00)/2 + (data$ScStr_03_02 + data$ScStr_03_01)/2 + (data$ScStr_03_03 + data$ScStr_03_02)/2 + (data$ScStr_03_04 + data$ScStr_03_03)/2 +
+  (data$ScStr_03_05 + data$ScStr_03_04)/2 + (data$ScStr_03_06 + data$ScStr_03_05)/2 + (data$ScStr_03_07 + data$ScStr_03_06)/2 + (data$ScStr_03_08 + data$ScStr_03_07)/2 + (data$ScStr_03_09 + data$ScStr_03_08)/2 + 
+  (data$ScStr_03_10 + data$ScStr_03_09)/2 + (data$ScStr_03_11 + data$ScStr_03_10)/2 + (data$ScStr_03_12 + data$ScStr_03_11)/2 + (data$ScStr_03_13 + data$ScStr_03_12)/2 + (data$ScStr_03_14 + data$ScStr_03_13)/2 +
+  (data$ScStr_03_15 + data$ScStr_03_14)/2 + (data$ScStr_03_16 + data$ScStr_03_15)/2 + (data$ScStr_03_17 + data$ScStr_03_16)/2 + (data$ScStr_03_18 + data$ScStr_03_17)/2 + (data$ScStr_03_19 + data$ScStr_03_18)/2 +
+  (data$ScStr_03_20 + data$ScStr_03_19)/2 + (data$ScStr_03_21 + data$ScStr_03_20)/2 + (data$ScStr_03_22 + data$ScStr_03_21)/2 + (data$ScStr_03_23 + data$ScStr_03_22)/2 + (data$ScStr_03_24 + data$ScStr_03_23)/2 +
+  (data$ScStr_03_25 + data$ScStr_03_24)/2 + (data$ScStr_03_26 + data$ScStr_03_25)/2 + (data$ScStr_03_27 + data$ScStr_03_26)/2 + (data$ScStr_03_28 + data$ScStr_03_27)/2 + (data$ScStr_03_29 + data$ScStr_03_28)/2 +
+  (data$ScStr_03_30 + data$ScStr_03_29)/2 + (data$ScStr_03_31 + data$ScStr_03_30)/2 + (data$ScStr_03_32 + data$ScStr_03_31)/2 + (data$ScStr_03_33 + data$ScStr_03_32)/2 + (data$ScStr_03_34 + data$ScStr_03_33)/2 +
+  (data$ScStr_03_35 + data$ScStr_03_34)/2 + (data$ScStr_03_36 + data$ScStr_03_35)/2 + (data$ScStr_03_37 + data$ScStr_03_36)/2 + (data$ScStr_03_38 + data$ScStr_03_37)/2 + (data$ScStr_03_39 + data$ScStr_03_38)/2 +
+  (data$ScStr_03_40 + data$ScStr_03_39)/2 + (data$ScStr_03_41 + data$ScStr_03_40)/2 + (data$ScStr_03_42 + data$ScStr_03_41)/2 + (data$ScStr_03_43 + data$ScStr_03_42)/2 + (data$ScStr_03_44 + data$ScStr_03_43)/2 +
+  (data$ScStr_03_45 + data$ScStr_03_44)/2 + (data$ScStr_03_46 + data$ScStr_03_45)/2 + (data$ScStr_03_47 + data$ScStr_03_46)/2 + (data$ScStr_03_48 + data$ScStr_03_47)/2 + (data$ScStr_03_49 + data$ScStr_03_48)/2 +
+  (data$ScStr_03_50 + data$ScStr_03_49)/2 + (data$ScStr_03_51 + data$ScStr_03_50)/2 + (data$ScStr_03_52 + data$ScStr_03_51)/2 + (data$ScStr_03_53 + data$ScStr_03_52)/2 + (data$ScStr_03_54 + data$ScStr_03_53)/2 +
+  (data$ScStr_03_55 + data$ScStr_03_54)/2 + (data$ScStr_03_56 + data$ScStr_03_55)/2 + (data$ScStr_03_57 + data$ScStr_03_56)/2 + (data$ScStr_03_58 + data$ScStr_03_57)/2 + (data$ScStr_03_59 + data$ScStr_03_58)/2 
+
+data$SSSCCombAUCi <- data$SSSCCombAUCg - (239 * data$SCbaseline)
+
+```
+
+
+### Difference Scores Countdown
+
+
+$Change Score = T2 (12 \,second  \,countdown  \,phase) - T1 (last  \,5  \,seconds \, of  \,rest \, phase)/trial time$
+
+
+#### SC 
+
+```{r}
+
+# Signaled
+
+data$CDSkin5secT1 <- (data$ScStr_00_07 + data$ScStr_00_08 + data$ScStr_00_09 + data$ScStr_00_10 + data$ScStr_00_11)/5
+
+data$CDSkin12secT1 <- (data$ScStr_00_12 + data$ScStr_00_13 + data$ScStr_00_14 + data$ScStr_00_15 + data$ScStr_00_16 + data$ScStr_00_17 +
+                         data$ScStr_00_18 + data$ScStr_00_19 + data$ScStr_00_20 + data$ScStr_00_21 + data$ScStr_00_22 + data$ScStr_00_23)/12
+
+data$CDSkinDifT1 <- data$CDSkin12secT1 - data$CDSkin5secT1
+
+
+data$CDSkin5secT3 <- (data$ScStr_01_37 + data$ScStr_01_38 + data$ScStr_01_39 + data$ScStr_01_40 + data$ScStr_01_41)/5
+
+data$CDSkin12secT3 <- (data$ScStr_01_42 +  data$ScStr_01_43 + data$ScStr_01_44 + data$ScStr_01_45 + data$ScStr_01_46 + data$ScStr_01_47 +
+                         data$ScStr_01_48 + data$ScStr_01_49 + data$ScStr_01_50 + data$ScStr_01_51 + data$ScStr_01_52 + data$ScStr_01_53)/12
+
+data$CDSkinDifT3 <- data$CDSkin12secT3 - data$CDSkin5secT3 
+
+# Signaled mean 
+
+data$CDSkinSignal12 <- (data$CDSkinDifT1 + data$CDSkinDifT3)/2
+
+
+
+# Unsignaled
+
+
+data$CDSkin5secT2 <- (data$ScStr_00_52 + data$ScStr_00_53 + data$ScStr_00_54 + data$ScStr_00_55 + data$ScStr_00_56)/5
+
+data$CDSkin12secT2 <- (data$ScStr_00_57 +  data$ScStr_00_58 + data$ScStr_00_59 + data$ScStr_01_00 + data$ScStr_01_01 + data$ScStr_01_02 + data$ScStr_01_03 + data$ScStr_01_04 + data$ScStr_01_05 + data$ScStr_01_06 + data$ScStr_01_07 + data$ScStr_01_08)/12
+
+data$CDSkinDifT2 <- data$CDSkin12secT2 - data$CDSkin5secT2
+
+
+data$CDSkin5secT4 <- (data$ScStr_02_22 + data$ScStr_02_23 + data$ScStr_02_24 + data$ScStr_02_25 + data$ScStr_02_26)/5
+
+data$CDSkin12secT4 <- (data$ScStr_02_27 + data$ScStr_02_28 + data$ScStr_02_29 + data$ScStr_02_30 + data$ScStr_02_31 + data$ScStr_02_32 + 
+                         data$ScStr_02_33 + data$ScStr_02_34 + data$ScStr_02_35 + data$ScStr_02_36 + data$ScStr_02_37 + data$ScStr_02_38)/12
+
+data$CDSkinDifT4 <- data$CDSkin12secT4 - data$CDSkin5secT4
+
+# Unsignaled mean 
+
+data$CDSkinUnsig12 <- (data$CDSkinDifT2 + data$CDSkinDifT4)/2
+
+
+```
+
+
+
+#### HR
+
+
+```{r}
+
+# Signaled
+
+data$CDHeart5secT1 <- (data$HrStr_00_07 + data$HrStr_00_08 + data$HrStr_00_09 + data$HrStr_00_10 + data$HrStr_00_11)/5
+
+
+data$CDHeart12secT1 <- (data$HrStr_00_12 + data$HrStr_00_13 + data$HrStr_00_14 + data$HrStr_00_15 + data$HrStr_00_16 + data$HrStr_00_17 + data$HrStr_00_18 + data$HrStr_00_19 + data$HrStr_00_20 + data$HrStr_00_21 + data$HrStr_00_22 + data$HrStr_00_23)/12
+
+
+data$CDHeartDifT1 <- data$CDHeart12secT1 - data$CDHeart5secT1
+
+
+data$CDHeart5secT3 <- (data$HrStr_01_37 + data$HrStr_01_38 + data$HrStr_01_39 + data$HrStr_01_40 + data$HrStr_01_41)/5
+
+
+data$CDHeart12secT3 <- (data$HrStr_01_42 +  data$HrStr_01_43 + data$HrStr_01_44 + data$HrStr_01_45 + data$HrStr_01_46 + data$HrStr_01_47 + data$HrStr_01_48 + data$HrStr_01_49 + data$HrStr_01_50 + data$HrStr_01_51 + data$HrStr_01_52 + data$HrStr_01_53)/12
+
+
+data$CDHeartDifT3 <- data$CDHeart12secT3 - data$CDHeart5secT3
+
+data$CDHeartSignal12 <- (data$CDHeartDifT1 + data$CDHeartDifT3)/2
+
+
+
+# Unsignaled
+
+
+data$CDHeart5secT2 <- (data$HrStr_00_52 + data$HrStr_00_53 + data$HrStr_00_54 + data$HrStr_00_55 + data$HrStr_00_56)/5
+
+
+data$CDHeart12secT2 <- (data$HrStr_00_57 +  data$HrStr_00_58 + data$HrStr_00_59 + data$HrStr_01_00 + data$HrStr_01_01 + data$HrStr_01_02 + data$HrStr_01_03 + data$HrStr_01_04 + data$HrStr_01_05 + data$HrStr_01_06 + data$HrStr_01_07 + data$HrStr_01_08)/12
+
+
+data$CDHeartDifT2 <- data$CDHeart12secT2 - data$CDHeart5secT2
+
+
+data$CDHeart5secT4 <- (data$HrStr_02_22 + data$HrStr_02_23 + data$HrStr_02_24 + data$HrStr_02_25 + data$HrStr_02_26)/5
+
+
+data$CDHeart12secT4 <- (data$HrStr_02_27 + data$HrStr_02_28 + data$HrStr_02_29 + data$HrStr_02_30 + data$HrStr_02_31 + data$HrStr_02_32 + data$HrStr_02_33 + data$HrStr_02_34 + data$HrStr_02_35 + data$HrStr_02_36 + data$HrStr_02_37 + data$HrStr_02_38)/12
+
+
+
+data$CDHeartDifT4 <- data$CDHeart12secT4 - data$CDHeart5secT4
+
+# Unsignaled mean
+
+
+data$CDHeartUnsig12 <- (data$CDHeartDifT2 + data$CDHeartDifT4)/2
+
+
+
+```
+
+
+
+
+
+### Countdown Recovery Measures 
+
+This was calculated using the following: 
+$Recovery Score = (mean \, of \, the \, 12 \, seconds \, after \, noise blast  \, – 5  \, mean \, of \, the  \,seconds  \, before  \, the  \,noise blast)$.  
+
+#### Heart Rate Change Recovery (HRCR) 
+
+
+
+```{r}
+
+
+# Trial 1
+
+data$HrT112Rec <- (data$HrStr_00_25 + data$HrStr_00_26 + data$HrStr_00_27 + data$HrStr_00_28 + data$HrStr_00_29 + data$HrStr_00_30 + data$HrStr_00_31 + data$HrStr_00_32 + data$HrStr_00_33 + data$HrStr_00_34 + data$HrStr_00_35 + data$HrStr_00_36)/12
+
+data$HrT15Rec <- (data$HrStr_00_19 + data$HrStr_00_20 + data$HrStr_00_21 + data$HrStr_00_22 + data$HrStr_00_23)/5
+
+
+data$HrT1Recov <- (data$HrT112Rec - data$HrT15Rec)
+
+# Trial 2
+
+data$HrT212Rec <- (data$HrStr_01_10 + data$HrStr_01_11 + data$HrStr_01_12 + data$HrStr_01_13 + data$HrStr_01_14 + data$HrStr_01_15 + data$HrStr_01_16 + data$HrStr_01_17 + data$HrStr_01_18 + data$HrStr_01_19 + data$HrStr_01_20 + data$HrStr_01_21)/12
+
+data$HrT25Rec <- (data$HrStr_01_04 + data$HrStr_01_05 + data$HrStr_01_06 + data$HrStr_01_07 + data$HrStr_01_08)/5
+
+
+data$HrT2Recov <- (data$HrT212Rec - data$HrT25Rec)
+
+
+
+# Trial 3
+
+data$HrT312Rec <- (data$HrStr_01_55 + data$HrStr_01_56 + data$HrStr_01_57 + data$HrStr_01_58 + data$HrStr_01_59 + data$HrStr_02_00 + data$HrStr_02_01 + data$HrStr_02_02 + data$HrStr_02_03 + data$HrStr_02_04 + data$HrStr_02_05 + data$HrStr_02_06)/12
+
+data$HrT35Rec <- (data$HrStr_01_49 + data$HrStr_01_50 + data$HrStr_01_51 + data$HrStr_01_52 + data$HrStr_01_53)/5
+
+
+data$HrT3Recov <- (data$HrT312Rec - data$HrT35Rec)
+
+
+# Trial 4
+
+data$HrT412Rec <- (data$HrStr_02_40 + data$HrStr_02_41 + data$HrStr_02_42 + data$HrStr_02_43 + data$HrStr_02_44 + data$HrStr_02_45 + data$HrStr_02_46 + data$HrStr_02_47 + data$HrStr_02_48 + data$HrStr_02_49 + data$HrStr_02_50 + data$HrStr_02_51)/12
+
+data$HrT45Rec <- (data$HrStr_02_34 + data$HrStr_02_35 + data$HrStr_02_36 + data$HrStr_02_37 + data$HrStr_02_38)/5
+
+
+data$HrT4Recov <- (data$HrT412Rec - data$HrT45Rec)
+
+
+# Signaled 
+
+
+data$HrSigRecovMean <- (data$HrT1Recov + data$HrT3Recov)/2
+
+# Unsignaled 
+
+data$HrUnSigRecovMean <- (data$HrT2Recov + data$HrT4Recov)/2
+
+```
+
+
+#### Skin Conductance Level Change Recover (SCLCR)
+
+```{r}
+
+
+# Trial 1
+
+data$ScT112Rec <- (data$ScStr_00_25 + data$ScStr_00_26 + data$ScStr_00_27 + data$ScStr_00_28 + data$ScStr_00_29 + data$ScStr_00_30 + data$ScStr_00_31 + data$ScStr_00_32 + data$ScStr_00_33 + data$ScStr_00_34 + data$ScStr_00_35 + data$ScStr_00_36)/12
+
+data$ScT15Rec <- (data$ScStr_00_19 + data$ScStr_00_20 + data$ScStr_00_21 + data$ScStr_00_22 + data$ScStr_00_23)/5
+
+
+data$ScT1Recov <- (data$ScT112Rec - data$ScT15Rec)
+
+# Trial 2
+
+data$ScT212Rec <- (data$ScStr_01_10 + data$ScStr_01_11 + data$ScStr_01_12 + data$ScStr_01_13 + data$ScStr_01_14 + data$ScStr_01_15 + data$ScStr_01_16 + data$ScStr_01_17 + data$ScStr_01_18 + data$ScStr_01_19 + data$ScStr_01_20 + data$ScStr_01_21)/12
+
+data$ScT25Rec <- (data$ScStr_01_04 + data$ScStr_01_05 + data$ScStr_01_06 + data$ScStr_01_07 + data$ScStr_01_08)/5
+
+
+data$ScT2Recov <- (data$ScT212Rec - data$ScT25Rec)
+
+
+
+# Trial 3
+
+data$ScT312Rec <- (data$ScStr_01_55 + data$ScStr_01_56 + data$ScStr_01_57 + data$ScStr_01_58 + data$ScStr_01_59 + data$ScStr_02_00 + data$ScStr_02_01 + data$ScStr_02_02 + data$ScStr_02_03 + data$ScStr_02_04 + data$ScStr_02_05 + data$ScStr_02_06)/12
+
+data$ScT35Rec <- (data$ScStr_01_49 + data$ScStr_01_50 + data$ScStr_01_51 + data$ScStr_01_52 + data$ScStr_01_53)/5
+
+
+data$ScT3Recov <- (data$ScT312Rec - data$ScT35Rec)
+
+
+# Trial 4
+
+data$ScT412Rec <- (data$ScStr_02_40 + data$ScStr_02_41 + data$ScStr_02_42 + data$ScStr_02_43 + data$ScStr_02_44 + data$ScStr_02_45 + data$ScStr_02_46 + data$ScStr_02_47 + data$ScStr_02_48 + data$ScStr_02_49 + data$ScStr_02_50 + data$ScStr_02_51)/12
+
+data$ScT45Rec <- (data$ScStr_02_34 + data$ScStr_02_35 + data$ScStr_02_36 + data$ScStr_02_37 + data$ScStr_02_38)/5
+
+
+data$ScT4Recov <- (data$ScT412Rec - data$ScT45Rec)
+
+# Signaled 
+
+data$ScSigRecovMean <- (data$ScT1Recov + data$ScT3Recov)/2
+
+
+# Unsignaled 
+
+
+data$ScUnSigRecovMean <- (data$ScT2Recov + data$ScT4Recov)/2
+
+
+```
+
+
+# **Wrangling** 
+## Full Sample
+
+### Table 1
+```{r}
+
+#Full
+
+FullsampleFinalSurveyT1 <- data |> 
+   dplyr::select(Task, Gender, race_eth, race_eth2, White, Male, Female, Age, GenderNumb, SRPTotalScore, SRPIPMTotal, SRPCATotal, SRPELSTotal, SRPASBTotal,
+                 ICUTotScore, ICUCalTotalScore, ICUUncareTotalScore, ICUUnemoTotal,LevTotalScore,
+                 LevPrimTotalScore, LevSecTotalScore, SSSTotalScore,SSSDISTotal, SSSBorTotal,
+                 SSSThrilTotal, SSSExpTotal)
+
+FSFSurveyT1 <- FullsampleFinalSurveyT1 |> 
+  na.omit()
+
+FullsampleFinalHRT1 <- data |> 
+   dplyr::select(Task, Gender, race_eth, race_eth2, White, Male, Female, Age, GenderNumb, SRPTotalScore, SRPIPMTotal, SRPCATotal, SRPELSTotal, SRPASBTotal,
+                 ICUTotScore, ICUCalTotalScore, ICUUncareTotalScore, ICUUnemoTotal,LevTotalScore,
+                 LevPrimTotalScore, LevSecTotalScore, SSSTotalScore,SSSDISTotal, SSSBorTotal,
+                 SSSThrilTotal, SSSExpTotal, HRbaseline)
+
+FSFHRT1 <- FullsampleFinalHRT1 |> 
+  na.omit()
+
+
+FullsampleFinalSCT1 <- data |> 
+  dplyr::select(Task, Gender, race_eth, race_eth2, White, Male, Female, Age, GenderNumb, SRPTotalScore, SRPIPMTotal, SRPCATotal, SRPELSTotal, SRPASBTotal, ICUTotScore, ICUCalTotalScore, ICUUncareTotalScore, ICUUnemoTotal,LevTotalScore,
+                 LevPrimTotalScore, LevSecTotalScore, SSSTotalScore,SSSDISTotal, SSSBorTotal,
+                 SSSThrilTotal, SSSExpTotal, SCbaseline)
+
+FSFSCT1 <- FullsampleFinalSCT1 |> 
+  na.omit()
+
+# Social Stressor 
+
+SocialStressorFinalHRT1 <- data |> 
+   dplyr::select(Task, White, Gender, Male, Female, Age, GenderNumb, SRPTotalScore, SRPIPMTotal, SRPCATotal, SRPELSTotal, SRPASBTotal, ICUTotScore, ICUCalTotalScore, ICUUncareTotalScore, ICUUnemoTotal,LevTotalScore,
+                 LevPrimTotalScore, LevSecTotalScore, SSSTotalScore,SSSDISTotal, SSSBorTotal,
+                 SSSThrilTotal, SSSExpTotal, SSHRCombAUCi, HRbaseline) |> 
+   filter(Task == "2")
+
+SSFHRT1 <- SocialStressorFinalHRT1 |> 
+  na.omit()
+
+
+SocialStressorFinalSCT1 <- data |> 
+  dplyr::select(Task, White, Gender, Male, Female, Age, GenderNumb,SRPTotalScore, SRPIPMTotal, SRPCATotal, SRPELSTotal, SRPASBTotal, ICUTotScore, ICUCalTotalScore, ICUUncareTotalScore, ICUUnemoTotal,LevTotalScore,
+                 LevPrimTotalScore, LevSecTotalScore, SSSTotalScore,SSSDISTotal, SSSBorTotal,
+                 SSSThrilTotal, SSSExpTotal, SSSCCombAUCi, SCbaseline) |> 
+  filter(Task == "2")
+
+SSFSCT1 <- SocialStressorFinalSCT1 |> 
+  na.omit()
+
+
+# Countdown 
+
+CountdownFinalHRT1 <- data |> 
+   dplyr::select(Task, Male, Female, White, Gender, Age, GenderNumb, SRPTotalScore, SRPIPMTotal, SRPCATotal, SRPELSTotal, SRPASBTotal, ICUTotScore, ICUCalTotalScore, ICUUncareTotalScore, ICUUnemoTotal,LevTotalScore,
+                 LevPrimTotalScore, LevSecTotalScore, SSSTotalScore,SSSDISTotal, SSSBorTotal,
+                 SSSThrilTotal, SSSExpTotal, CDHeartSignal12, CDHeartUnsig12, HrSigRecovMean, HrUnSigRecovMean, HRbaseline) |> 
+   filter(Task == "1")
+
+CDFHRT1 <- CountdownFinalHRT1 |> 
+   na.omit()
+  
+CountdownFinalSCT1 <- data |> 
+   dplyr::select(Task, Male, Female, White, Gender, Age, GenderNumb, SRPTotalScore, SRPIPMTotal, SRPCATotal, SRPELSTotal, SRPASBTotal, ICUTotScore, ICUCalTotalScore, ICUUncareTotalScore, ICUUnemoTotal,LevTotalScore,
+                 LevPrimTotalScore, LevSecTotalScore, SSSTotalScore,SSSDISTotal, SSSBorTotal, SSSThrilTotal, SSSExpTotal,
+                 CDSkinSignal12, CDSkinUnsig12, ScSigRecovMean, ScUnSigRecovMean, SCbaseline) |> 
+   filter(Task == "1")
+ 
+CDFSCT1 <- CountdownFinalSCT1 |> 
+   na.omit()
+
+
+
+```
+
+## Male Only 
+
+### Table 1
+
+These data frames were required to compensate for the missing variables. If I just selected the one column I needed (e.g.,"HRbaseline") the missing would not match the true sample number because missing values are contained within the survey. This is most evident in the female sample (Female Only Table 1 code chunk). 
+
+```{r}
+
+# Baseline
+
+MaleHRbaseT1 <- data |> 
+  dplyr::select(GenderNumb, White, Age, SRPTotalScore, SRPIPMTotal, SRPCATotal, SRPELSTotal, SRPASBTotal,
+                 ICUTotScore, ICUCalTotalScore, ICUUncareTotalScore, ICUUnemoTotal,LevTotalScore,
+                 LevPrimTotalScore, LevSecTotalScore, SSSTotalScore,SSSDISTotal, SSSBorTotal,
+                 SSSThrilTotal, SSSExpTotal, HRbaseline) |> 
+  filter(GenderNumb == "2")
+
+MHRbT1 <- MaleHRbaseT1 |> 
+  na.omit()
+
+
+MaleSCbaseT1 <- data |> 
+  dplyr::select(GenderNumb, White, Age, SRPTotalScore, SRPIPMTotal, SRPCATotal, SRPELSTotal, SRPASBTotal,
+                 ICUTotScore, ICUCalTotalScore, ICUUncareTotalScore, ICUUnemoTotal,LevTotalScore,
+                 LevPrimTotalScore, LevSecTotalScore, SSSTotalScore,SSSDISTotal, SSSBorTotal,
+                 SSSThrilTotal, SSSExpTotal, SCbaseline) |> 
+  filter(GenderNumb == "2")
+
+MSCbT1 <- MaleSCbaseT1 |> 
+  na.omit()
+
+
+# Social Stressor 
+
+MaleSSHRT1 <- SocialStressorFinalHRT1 |> 
+  dplyr::select(GenderNumb, White, Age, SRPTotalScore, SRPIPMTotal, SRPCATotal, SRPELSTotal, SRPASBTotal,
+                 ICUTotScore, ICUCalTotalScore, ICUUncareTotalScore, ICUUnemoTotal,LevTotalScore,
+                 LevPrimTotalScore, LevSecTotalScore, SSSTotalScore,SSSDISTotal, SSSBorTotal,
+                 SSSThrilTotal, SSSExpTotal, SSHRCombAUCi) |>  
+  filter(GenderNumb == "2")
+
+MSSHRT1 <- MaleSSHRT1 |> 
+  na.omit()
+
+MaleSSSCT1 <- SocialStressorFinalSCT1 |> 
+  dplyr::select(GenderNumb, White, Age, SRPTotalScore, SRPIPMTotal, SRPCATotal, SRPELSTotal, SRPASBTotal,
+                 ICUTotScore, ICUCalTotalScore, ICUUncareTotalScore, ICUUnemoTotal,LevTotalScore,
+                 LevPrimTotalScore, LevSecTotalScore, SSSTotalScore,SSSDISTotal, SSSBorTotal,
+                 SSSThrilTotal, SSSExpTotal, SSSCCombAUCi) |> 
+  filter(GenderNumb == "2")
+
+MSSSCT1 <- MaleSSSCT1 |> 
+  na.omit()
+
+# Countdown 
+
+
+MaleCDHRT1 <- CountdownFinalHRT1 |> 
+  dplyr::select(GenderNumb,  White, Age, SRPTotalScore, SRPIPMTotal, SRPCATotal, SRPELSTotal, SRPASBTotal,
+                 ICUTotScore, ICUCalTotalScore, ICUUncareTotalScore, ICUUnemoTotal,LevTotalScore,
+                 LevPrimTotalScore, LevSecTotalScore, SSSTotalScore,SSSDISTotal, SSSBorTotal,
+                 SSSThrilTotal, SSSExpTotal, CDHeartSignal12, CDHeartUnsig12, HrSigRecovMean, HrUnSigRecovMean) |> 
+  filter(GenderNumb == "2")
+
+MCDHRT1 <- MaleCDHRT1 |> 
+  na.omit()
+
+MaleCDSCT1 <- CountdownFinalSCT1 |> 
+  dplyr::select(GenderNumb,  White, Age, SRPTotalScore, SRPIPMTotal, SRPCATotal, SRPELSTotal, SRPASBTotal,
+                 ICUTotScore, ICUCalTotalScore, ICUUncareTotalScore, ICUUnemoTotal,LevTotalScore,
+                 LevPrimTotalScore, LevSecTotalScore, SSSTotalScore,SSSDISTotal, SSSBorTotal,
+                 SSSThrilTotal, SSSExpTotal, CDSkinSignal12, CDSkinUnsig12, ScSigRecovMean, ScUnSigRecovMean) |>  
+  filter(GenderNumb == "2")
+
+MCDSCT1 <- MaleCDSCT1 |> 
+  na.omit()
+
+
+```
+
+
+## Female Only 
+
+```{r}
+
+# Survey only for distribution checks 
+
+FemaleDistribCheck <-  data |> 
+  dplyr::select(GenderNumb, White, Age, SRPTotalScore, SRPIPMTotal, SRPCATotal, SRPELSTotal, SRPASBTotal,
+                 ICUTotScore, ICUCalTotalScore, ICUUncareTotalScore, ICUUnemoTotal,LevTotalScore,
+                 LevPrimTotalScore, LevSecTotalScore, SSSTotalScore,SSSDISTotal, SSSBorTotal,
+                 SSSThrilTotal, SSSExpTotal) |> 
+  filter(GenderNumb == "1")
+
+
+FemaleDisCheck <- FemaleDistribCheck |> 
+  na.omit()
+
+```
+
+### Table 1
+
+```{r}
+
+
+
+# baseline 
+
+FemaleHRbaselineT1 <-  data |> 
+  dplyr::select(GenderNumb, White, Age, SRPTotalScore, SRPIPMTotal, SRPCATotal, SRPELSTotal, SRPASBTotal,
+                 ICUTotScore, ICUCalTotalScore, ICUUncareTotalScore, ICUUnemoTotal,LevTotalScore,
+                 LevPrimTotalScore, LevSecTotalScore, SSSTotalScore,SSSDISTotal, SSSBorTotal,
+                 SSSThrilTotal, SSSExpTotal, HRbaseline) |> 
+  filter(GenderNumb == "1")
+
+
+FemaleHRbaseT1 <- FemaleHRbaselineT1 |> 
+  na.omit()
+
+FemaleSCbaselineT1 <- data |> 
+  dplyr::select(GenderNumb, White, Age, SRPTotalScore, SRPIPMTotal, SRPCATotal, SRPELSTotal, SRPASBTotal,
+                 ICUTotScore, ICUCalTotalScore, ICUUncareTotalScore, ICUUnemoTotal,LevTotalScore,
+                 LevPrimTotalScore, LevSecTotalScore, SSSTotalScore,SSSDISTotal, SSSBorTotal,
+                 SSSThrilTotal, SSSExpTotal, SCbaseline) |> 
+  filter(GenderNumb == "1")
+
+FemaleSCbaseT1 <- FemaleSCbaselineT1 |> 
+  na.omit()
+
+# Social Stressor 
+
+FemaleSocialSHRT1 <- SocialStressorFinalHRT1 |> 
+  dplyr::select(GenderNumb, White, Age, SRPTotalScore, SRPIPMTotal, SRPCATotal, SRPELSTotal, SRPASBTotal,
+                 ICUTotScore, ICUCalTotalScore, ICUUncareTotalScore, ICUUnemoTotal,LevTotalScore,
+                 LevPrimTotalScore, LevSecTotalScore, SSSTotalScore,SSSDISTotal, SSSBorTotal,
+                 SSSThrilTotal, SSSExpTotal, SSHRCombAUCi) |> 
+  filter(GenderNumb == "1")
+
+FemaleSSHRT1 <- FemaleSocialSHRT1 |> 
+  na.omit()
+
+
+FemaleSocialSSCT1 <- SocialStressorFinalSCT1 |> 
+  dplyr::select(GenderNumb, White, Age, SRPTotalScore, SRPIPMTotal, SRPCATotal, SRPELSTotal, SRPASBTotal,
+                 ICUTotScore, ICUCalTotalScore, ICUUncareTotalScore, ICUUnemoTotal,LevTotalScore,
+                 LevPrimTotalScore, LevSecTotalScore, SSSTotalScore,SSSDISTotal, SSSBorTotal,
+                 SSSThrilTotal, SSSExpTotal, SSSCCombAUCi) |> 
+  filter(GenderNumb == "1")
+
+FemaleSCSST1 <- FemaleSocialSSCT1 |> 
+  na.omit()
+
+# Countdown 
+
+FemaleHRCountDT1 <- CountdownFinalHRT1 |> 
+  dplyr::select(GenderNumb, White, Age, SRPTotalScore, SRPIPMTotal, SRPCATotal, SRPELSTotal, SRPASBTotal,
+                 ICUTotScore, ICUCalTotalScore, ICUUncareTotalScore, ICUUnemoTotal,LevTotalScore,
+                 LevPrimTotalScore, LevSecTotalScore, SSSTotalScore,SSSDISTotal, SSSBorTotal,
+                 SSSThrilTotal, SSSExpTotal, CDHeartSignal12, CDHeartUnsig12, HrSigRecovMean, HrUnSigRecovMean) |> 
+  filter(GenderNumb == "1")
+
+FemaleHRCDT1 <- FemaleHRCountDT1 |> 
+  na.omit()
+
+
+
+FemaleSCCountDT1 <- CountdownFinalSCT1 |> 
+  dplyr::select(GenderNumb, White, Age, SRPTotalScore, SRPIPMTotal, SRPCATotal, SRPELSTotal, SRPASBTotal,
+                 ICUTotScore, ICUCalTotalScore, ICUUncareTotalScore, ICUUnemoTotal,LevTotalScore,
+                 LevPrimTotalScore, LevSecTotalScore, SSSTotalScore,SSSDISTotal, SSSBorTotal,
+                 SSSThrilTotal, SSSExpTotal, CDSkinSignal12, CDSkinUnsig12, ScSigRecovMean, ScUnSigRecovMean) |>  
+  filter(GenderNumb == "1")
+
+FemaleSCCDT1 <- FemaleSCCountDT1 |> 
+  na.omit()
+
+```
+
+
+## Scale Reliability Data Frame
+
+Created a new data frame that takes into account the sample and the missing data to calculate the alphas. Can't use original data frome due to the nature of the autonomic data (i.e., contains a varying amount NAs for all participants, therefore can't na.omit). To save time and reduce error, I used **gsub()**. Process below to replicate. 
+
+Code <- "Copy and paste the code from the total scores" 
+
+new_code <- gsub("data\\$", "", code) 
+^ use an escape character (i.e., \\) to treat the $ as normal character and not a special expression. Throws in a "" spot. 
+
+new_code2 <- gsub("\\+", ",", new_code)
+^ same story here. 
+
+cat(new_code2)
+^ Concatenate the variables into a neat string and copy from console to code chunk. 
+
+
+```{r}
+
+Scaledf <- data |> 
+  dplyr::select (SRP_01n , SRP_02n , SRP_03n , SRP_04n ,  SRP5nRev , SRP6nRev , SRP_07n , SRP_08n ,
+                 SRP_09n , SRP_10n , SRP11nRev , SRP_12n , SRP_13n , SRP14nRev ,
+                  SRP_15n , SRP16nRev , SRP_17n , SRP18nRev , SRP19nRev , SRP_20n , SRP21nRev ,
+                  SRP22nRev , SRP23nRev , SRP24nRev , SRP25nRev , SRP26nRev , SRP_27n , SRP_28n , 
+                  SRP_29n , SRP_30n , SRP31nRev , SRP_32n , SRP_33n , SRP34nRev ,  SRP_35n , 
+                  SRP36nRev ,  SRP_37n , SRP38nRev , SRP_39n , SRP_40n , SRP_41n , SRP_42n , 
+                  SRP_43n , SRP44nRev , SRP_45n , SRP46nRev , SRP47nRev , SRP_48n , SRP_49n , 
+                  SRP_50n , SRP_51n , SRP_52n , SRP_53n , SRP_54n , SRP_55n ,  SRP_56n ,
+                  SRP_57n , SRP_58n , SRP_59n , SRP_60n , SRP61nRev , SRP_62n , SRP_63n , SRP_64n ,
+                  ICU_1nRev , ICU_2n , ICU_3nRev , ICU_4n , ICU_5nRev , ICU_6n , 
+                  ICU_7n , ICU_8nRev , ICU_9n , ICU_10n , ICU_11n , ICU_12n , ICU_13nRev ,
+                  ICU_14nRev , ICU_15nRev , ICU_16nRev , ICU_17nRev , ICU_18n , ICU_19nRev ,
+                  ICU_20n , ICU_21n , ICU_22n , ICU_23nRev , ICU_24nRev ,
+                  Lev_01n , Lev_02n , Lev_03nRev , Lev_04n , Lev_05n , Lev_06n , Lev_07nRev , Lev_08n ,
+                 Lev_09n , Lev_10nRev , Lev_11n , Lev_12n , Lev_13nRev , Lev_16n , Lev_17n , Lev_18n ,
+                 Lev_19n , Lev_20n , Lev_21nRev , Lev_22n , Lev_23n , Lev_24n , Lev_25n , Lev_26nRev , 
+                 ZSSS_1nRev , ZSSS_2n , ZSSS_3nRev , ZSSS_4n , ZSSS_5nRev , ZSSS_6nRev , ZSSS_7n , ZSSS_8nRev ,
+                 ZSSS_9nRev , ZSSS_10n , ZSSS_11n , ZSSS_12n , ZSSS_13n , ZSSS_14nRev , ZSSS_15n , ZSSS_16nRev , 
+                 ZSSS_17nRev , ZSSS_18nRev , ZSSS_19n , ZSSS_20n , ZSSS_21n , ZSSS_22nRev , ZSSS_23nRev , ZSSS_24nRev , 
+                 ZSSS_25n , ZSSS_26n , ZSSS_27n , ZSSS_28nRev , ZSSS_29nRev , ZSSS_30n , ZSSS_31n ,
+                  ZSSS_32nRev , ZSSS_33n , ZSSS_34nRev , ZSSS_35n , ZSSS_36nRev , ZSSS_37n , ZSSS_38n , ZSSS_39nRev , ZSSS_40n) |> 
+  na.omit()
+                  
+                  
+
+# SRP 
+
+SRPTotA <-Scaledf[ , c("SRP_03n","SRP_08n","SRP_13n","SRP16nRev","SRP_20n","SRP24nRev","SRP_27n",
+                    "SRP31nRev","SRP_35n", "SRP38nRev","SRP_41n", "SRP_45n","SRP_50n", "SRP_54n","SRP_58n", "SRP61nRev",
+                    "SRP_02n","SRP_07n", "SRP11nRev", "SRP_15n", "SRP19nRev", "SRP23nRev", "SRP26nRev", "SRP_30n", "SRP_33n",
+                    "SRP_37n", "SRP_40n", "SRP44nRev", "SRP_48n", "SRP_01n", "SRP_53n", "SRP_56n", "SRP_60n", "SRP_04n", 
+                    "SRP_09n", "SRP14nRev", "SRP_17n", "SRP22nRev", "SRP25nRev", "SRP_28n", "SRP_32n", "SRP36nRev", "SRP_39n",
+                    "SRP_42n", "SRP47nRev", "SRP_51n", "SRP_55n", "SRP_59n", "SRP5nRev", "SRP6nRev", "SRP_10n", "SRP_12n", 
+                    "SRP18nRev", "SRP21nRev", "SRP_29n", "SRP34nRev", "SRP_43n", "SRP46nRev", "SRP_49n", "SRP_52n",
+                    "SRP_57n", "SRP_62n", "SRP_63n", "SRP_64n")]
+
+SRPIPMA <-Scaledf[ , c("SRP_03n","SRP_08n","SRP_13n","SRP16nRev","SRP_20n","SRP24nRev","SRP_27n",
+                    "SRP31nRev","SRP_35n", "SRP38nRev","SRP_41n", "SRP_45n","SRP_50n", "SRP_54n","SRP_58n", "SRP61nRev")]
+
+SRPICAA <-Scaledf[ , c("SRP_02n","SRP_07n","SRP11nRev","SRP_15n","SRP19nRev","SRP23nRev","SRP26nRev",
+                    "SRP_30n","SRP_33n", "SRP_37n","SRP_40n", "SRP44nRev","SRP_48n", "SRP_53n","SRP_56n", "SRP_60n")]
+
+SRPELSA <-Scaledf[ , c("SRP_01n","SRP_04n","SRP_09n","SRP14nRev","SRP_17n","SRP22nRev","SRP25nRev",
+                    "SRP_28n","SRP_32n", "SRP36nRev","SRP_39n", "SRP_42n","SRP47nRev", "SRP_51n","SRP_55n", "SRP_59n")]
+
+SRPASBA <-Scaledf[ , c("SRP5nRev","SRP6nRev","SRP_10n","SRP_12n","SRP18nRev","SRP21nRev","SRP_29n",
+                    "SRP34nRev","SRP_43n", "SRP46nRev","SRP_49n", "SRP_52n","SRP_57n", "SRP_62n","SRP_63n", "SRP_64n")]
+
+#  ICU 
+
+ICUTotA <-Scaledf[ , c("ICU_1nRev","ICU_2n","ICU_3nRev","ICU_4n","ICU_5nRev","ICU_6n","ICU_7n",
+                    "ICU_8nRev","ICU_9n", "ICU_10n", "ICU_11n","ICU_12n", "ICU_13nRev","ICU_14nRev", "ICU_15nRev",
+                    "ICU_16nRev","ICU_17nRev", "ICU_18n","ICU_19nRev", "ICU_20n","ICU_21n", "ICU_22n","ICU_23nRev", "ICU_24nRev")]
+
+ICUCalA <-Scaledf[ , c("ICU_4n","ICU_8nRev","ICU_9n","ICU_18n","ICU_11n","ICU_21n","ICU_7n",
+                    "ICU_20n","ICU_2n", "ICU_12n","ICU_10n")]
+
+ICUUncareA <-Scaledf[ , c("ICU_15nRev","ICU_23nRev","ICU_16nRev","ICU_3nRev","ICU_17nRev","ICU_24nRev","ICU_13nRev",
+                       "ICU_5nRev")]
+
+ICUUnemoA <-Scaledf[ , c("ICU_1nRev","ICU_19nRev","ICU_6n","ICU_22n","ICU_14nRev")]
+
+# LSRP
+
+LevTotA <-Scaledf[ , c("Lev_01n","Lev_02n","Lev_03nRev","Lev_04n","Lev_05n","Lev_06n","Lev_07nRev",
+                    "Lev_08n","Lev_09n", "Lev_10nRev","Lev_11n","Lev_12n", "Lev_13nRev","Lev_16n","Lev_17n", "Lev_18n",
+                    "Lev_19n", "Lev_20n","Lev_21nRev", "Lev_22n","Lev_23n", "Lev_24n", "Lev_25n","Lev_26nRev" )]
+
+LevPrimA <-Scaledf[ , c("Lev_02n","Lev_04n","Lev_07nRev","Lev_09n","Lev_11n","Lev_12n",
+                     "Lev_13nRev","Lev_17n", "Lev_19n","Lev_21nRev","Lev_22n", "Lev_23n","Lev_24n","Lev_25n", "Lev_26nRev")]
+
+LevSecA <-Scaledf[ , c("Lev_01n","Lev_03nRev","Lev_05n","Lev_06n","Lev_08n","Lev_10nRev",
+                    "Lev_16n","Lev_18n", "Lev_20n")]
+# SSS 
+
+SSSTotA <-Scaledf[ , c("ZSSS_1nRev","ZSSS_2n","ZSSS_3nRev","ZSSS_4n","ZSSS_5nRev","ZSSS_6nRev","ZSSS_7n", "ZSSS_8nRev","ZSSS_9nRev", "ZSSS_10n",
+                    "ZSSS_11n", "ZSSS_12n","ZSSS_13n", "ZSSS_14nRev","ZSSS_15n", "ZSSS_16nRev", "ZSSS_17nRev","ZSSS_18nRev", "ZSSS_19n", "ZSSS_20n",
+                    "ZSSS_21n", "ZSSS_22nRev", "ZSSS_23nRev", "ZSSS_24nRev", "ZSSS_25n", "ZSSS_26n", "ZSSS_27n","ZSSS_28nRev","ZSSS_29nRev","ZSSS_30n","ZSSS_31n",
+                    "ZSSS_32nRev","ZSSS_33n","ZSSS_34nRev","ZSSS_35n","ZSSS_36nRev","ZSSS_37n","ZSSS_38n", "ZSSS_39nRev", "ZSSS_40n")]
+
+SSSDISA <-Scaledf[ , c("ZSSS_12n","ZSSS_13n","ZSSS_25n","ZSSS_30n","ZSSS_33n","ZSSS_35n",
+                    "ZSSS_1nRev","ZSSS_29nRev", "ZSSS_32nRev", "ZSSS_36nRev")]
+
+SSSBorA <-Scaledf[ , c("ZSSS_2n","ZSSS_7n","ZSSS_15n","ZSSS_27n","ZSSS_31n","ZSSS_5nRev",
+                    "ZSSS_8nRev","ZSSS_24nRev", "ZSSS_34nRev", "ZSSS_39nRev")]
+
+SSSThrilA <-Scaledf[ , c("ZSSS_11n","ZSSS_20n","ZSSS_21n","ZSSS_38n","ZSSS_40n","ZSSS_3nRev",
+                      "ZSSS_16nRev","ZSSS_17nRev", "ZSSS_23nRev", "ZSSS_28nRev")]
+
+SSSExpA <-Scaledf[ , c("ZSSS_4n","ZSSS_10n","ZSSS_19n","ZSSS_26n","ZSSS_37n","ZSSS_6nRev",
+                    "ZSSS_9nRev","ZSSS_14nRev", "ZSSS_18nRev", "ZSSS_22nRev")]
+
+
+```
+
+## Graph Data Wrangling    
+
+### Social Stressor 
+```{r}
+
+SSSTGraphHR <- data |> 
+  dplyr::select(Task, HrStr_00_00:HrStr_03_59) |> 
+  dplyr::filter(Task == "2")
+
+SSSTGraph1 <- SSSTGraphHR |> 
+  dplyr::select(HrStr_00_00:HrStr_03_59)
+  
+
+```
+ 
+#### Function 1
+
+Creates a new data frame with the mean of every 5 columns.
+
+```{r}
+SSST_Five <- function(df) {
+  # This is a check to ensure that the number of columns is divisible by 5
+  if (ncol(df) %% 5 != 0) {
+    stop("Something is off.")
+  }
+  # Create an empty list to store the mean columns
+  mean_cols <- list()
+  # Loop through (or processes) the columns in groups of 5
+  for (i in seq(1, ncol(df), by = 5)) {
+    # Calculate the mean for each group of 5 columns
+    mean_col <- rowMeans(df[, i:(i + 4)], na.rm = TRUE)
+    # Add the mean column to the list
+   mean_cols[[as.character((i - 1) / 5 + 1)]] <- mean_col
+  }
+  # Combine the original data frame with the new mean columns
+  df_means <- as.data.frame(mean_cols)
+  return(df_means)
+}
+
+```
+ 
+ 
+```{r}
+SSSTVizHR <- SSST_Five(SSSTGraph1)
+
+mean_values <- colMeans(SSSTVizHR, na.rm = TRUE)
+
+
+data12 <- data.frame(
+ time = seq_len(length(mean_values)),
+  value = mean_values
+)
+
+
+```
+
+
+```{r}
+
+SSSTGraphSc <- data |> 
+  dplyr::select(Task, ScStr_00_00:ScStr_03_59) |> 
+  dplyr::filter(Task == "2")
+
+SSSTGraph2 <- SSSTGraphSc |> 
+  dplyr::select(ScStr_00_00:ScStr_03_59)
+
+SSSTVizSc <- SSST_Five(SSSTGraph2)
+
+mean_value <- colMeans(SSSTVizSc, na.rm = TRUE)
+
+
+data123 <- data.frame(
+ time = seq_len(length(mean_values)),
+  value = mean_value
+)
+
+```
+ 
+### Countdown 
+
+
+```{r}
+
+CDGraphHR <- data |> 
+  dplyr::select(Task, HrStr_00_07:HrStr_00_37, HrStr_01_37: HrStr_02_07,
+                HrStr_00_52:HrStr_01_22, HrStr_02_22:HrStr_02_52) |> 
+  dplyr::filter(Task == "1")
+
+
+CDGraphSC <- data |> 
+  dplyr::select(Task, ScStr_00_07:ScStr_00_37, ScStr_01_37: ScStr_02_07,
+                ScStr_00_52:ScStr_01_22, ScStr_02_22:ScStr_02_52) |> 
+  dplyr::filter(Task == "1")
+
+
+# HR
+
+CDGraphHRSig <- CDGraphHR |> 
+  dplyr::select(HrStr_00_07:HrStr_00_37, HrStr_01_37:HrStr_02_07)
+
+CDGraphHRUnsig <- CDGraphHR |> 
+  dplyr::select(HrStr_00_52:HrStr_01_22, HrStr_02_22:HrStr_02_52)
+
+# SC
+
+CDGraphSCSig <- CDGraphSC |> 
+  dplyr::select(ScStr_00_07:ScStr_00_37, ScStr_01_37:ScStr_02_07)
+
+CDGraphSCUnsig <- CDGraphSC |>
+  dplyr::select(ScStr_00_52:ScStr_01_22, ScStr_02_22:ScStr_02_52)
+
+
+```
+
+
+#### Function 2 
+
+Function that divides the data frame in half then creates a new column with the mean of the two columns (i.e., column 1 and column 32, column 2 and column 33, etc.).
+
+```{r}
+
+Mean_Phase <- function(df) {
+  # Run a check
+  num_cols <- ncol(df)
+  if (num_cols %% 2 != 0) {
+    stop("Something is off.")
+  }
+  # Loop through half of the columns to create the mean columns
+  for (i in 1:(num_cols / 2)) {
+    col1 <- df[, i]
+    col2 <- df[, i + (num_cols / 2)]
+    new_col_name <- paste0("Mean_", names(df)[i], "_", names(df)[i + (num_cols / 2)])
+    df[[new_col_name]] <- rowMeans(cbind(col1, col2))
+  }
+  
+  return(df)
+}
+
+
+
+```
+
+
+
+```{r}
+# HR Signaled 
+CDGraphHRSig1 <- Mean_Phase(CDGraphHRSig)
+
+CDGraphHRSignaled <- CDGraphHRSig1 |> 
+  dplyr::select(cols = 63:93)
+
+# HR Unsignaled
+CDGraphHRUnsig1 <- Mean_Phase(CDGraphHRUnsig)
+
+CDGraphHRUnsignaled <- CDGraphHRUnsig1 |> 
+  dplyr::select(cols = 63:93)
+
+# SC Signaled
+CDGraphSCSig1 <- Mean_Phase(CDGraphSCSig)
+
+CDGraphSCSignaled <- CDGraphSCSig1 |> 
+  dplyr::select(cols = 63:93)
+
+# SC Unsignaled
+CDGraphSCUnsig1 <- Mean_Phase(CDGraphSCUnsig)
+
+CDGraphSCUnsignaled <- CDGraphSCUnsig1 |> 
+  dplyr::select(cols = 63:93)
+
+
+```
+
+
+HR
+
+```{r}
+
+# HRSig 
+
+mean_values <- colMeans(CDGraphHRSignaled, na.rm = TRUE)
+
+# Convert mean_values to a data frame for plotting
+CDGraphHRSignaled1 <- data.frame(
+ time = seq_len(length(mean_values)),
+  value = mean_values)
+
+
+# HRUnsig
+
+mean_values <- colMeans(CDGraphHRUnsignaled, na.rm = TRUE)
+
+CDGraphHRUnsignaled1 <- data.frame(
+ time = seq_len(length(mean_values)),
+  value = mean_values)
+
+
+# Merge the two 
+
+CDGraphHR <- dplyr::bind_rows(
+  CDGraphHRSignaled1 |> 
+    dplyr::mutate(group = "Signaled"),
+  CDGraphHRUnsignaled1 |> 
+    dplyr::mutate(group = "Unsignaled")
+)
+
+# Reset rownames 
+rownames(CDGraphHR) <- 1:nrow(CDGraphHR)
+
+
+```
+
+SC
+
+```{r}
+
+# SCSig
+
+mean_values <- colMeans(CDGraphSCSignaled, na.rm = TRUE)
+
+CDGraphSCSignaled1 <- data.frame(
+   time = seq_len(length(mean_values)),
+  value = mean_values)
+
+
+# SCUnsig
+
+
+mean_values <- colMeans(CDGraphSCUnsignaled, na.rm = TRUE)
+
+CDGraphSCUnsignaled1 <- data.frame(
+  time = seq_len(length(mean_values)),
+  value = mean_values)
+
+                                         
+# Merge the two
+
+CDGraphSC <- dplyr::bind_rows(
+  CDGraphSCSignaled1 |> 
+    dplyr::mutate(group = "Signaled"),
+  CDGraphSCUnsignaled1 |> 
+    dplyr::mutate(group = "Unsignaled")
+)
+
+# Reset rownames 
+rownames(CDGraphSC) <- 1:nrow(CDGraphSC)
+
+
+```
+
+# **Analysis**
+
+### Reliabity Scores 
+
+Note: ICU callousness, SSS boredom and experience seeking were dropped because of their low alpha (02-09-24). 
+
+
+
+```{r}
+
+# SRP
+
+cronbach.alpha(SRPTotA)
+
+cronbach.alpha(SRPIPMA)
+
+cronbach.alpha(SRPICAA)
+
+cronbach.alpha(SRPELSA)
+
+cronbach.alpha(SRPASBA)
+
+
+# ICU 
+
+cronbach.alpha(ICUTotA)
+
+cronbach.alpha(ICUCalA)
+
+cronbach.alpha(ICUUncareA)
+
+cronbach.alpha(ICUUnemoA)
+
+
+# LSRP
+
+
+cronbach.alpha(LevTotA)
+
+cronbach.alpha(LevPrimA)
+
+cronbach.alpha(LevSecA)
+
+
+# ZSSS
+
+
+cronbach.alpha(SSSTotA)
+
+cronbach.alpha(SSSDISA)
+
+cronbach.alpha(SSSBorA)
+
+cronbach.alpha(SSSThrilA)
+
+cronbach.alpha(SSSExpA)
+
+```
+
+## Table 1 (Descriptives) 
+
+### Survey Means
+```{r}
+
+# full 
+
+FSDescriptives <- FSFSurveyT1 |> 
+   summarise(
+     across(
+       .cols = c(SRPTotalScore, SRPIPMTotal, SRPCATotal, SRPELSTotal, SRPASBTotal, ICUTotScore, ICUUncareTotalScore, ICUUnemoTotal,LevTotalScore, LevPrimTotalScore, LevSecTotalScore, SSSTotalScore,SSSDISTotal,SSSThrilTotal
+                 ),
+       .fns = c( # this is used to describe the function within a list of the output (i.e., mean and sd), and the "\" is just shorthand for "function"
+         mean = \(x) mean(x, na.rm = T),
+         sd = \(x) sd(x, na.rm =T),
+         min = \(x) min(x, na.rm = T),
+         max = \(x) max(x, na.rm = T)
+       ),
+       .names = '{.col} ---- {.fn}'
+     )
+   ) |> 
+  pivot_longer(
+    cols = everything()
+  ) 
+  
+
+knitr::kable(FSDescriptives)
+
+
+# female 
+
+ 
+FSDescriptivesFemale <- FSFSurveyT1 |> 
+   filter(GenderNumb == "1") |> 
+   summarise(
+     across(
+       .cols = c(SRPTotalScore, SRPIPMTotal, SRPCATotal, SRPELSTotal, SRPASBTotal,
+                 ICUTotScore, ICUUncareTotalScore, ICUUnemoTotal,LevTotalScore,
+                 LevPrimTotalScore, LevSecTotalScore, SSSTotalScore,SSSDISTotal,
+                 SSSThrilTotal
+       ),
+       .fns = c( 
+         mean = \(x) mean(x, na.rm = T),
+         sd = \(x) sd(x, na.rm =T),
+         min = \(x) min(x, na.rm = T),
+         max = \(x) max(x, na.rm = T)
+       ),
+       .names = '{.col} ---- {.fn}'
+     )
+   ) |> 
+   pivot_longer(
+     cols = everything()
+   )
+ 
+knitr::kable(FSDescriptivesFemale)
+
+ 
+# male 
+ 
+FSDescriptivesMale <- FSFSurveyT1 |> 
+  filter(GenderNumb == "2") |> 
+  summarise(
+    across(
+      .cols = c(SRPTotalScore, SRPIPMTotal, SRPCATotal, SRPELSTotal, SRPASBTotal,
+                ICUTotScore, ICUUncareTotalScore, ICUUnemoTotal,LevTotalScore,
+                LevPrimTotalScore, LevSecTotalScore, SSSTotalScore,SSSDISTotal,
+                SSSThrilTotal
+      ),
+      .fns = c( 
+        mean = \(x) mean(x, na.rm = T),
+        sd = \(x) sd(x, na.rm =T)
+      ),
+      .names = '{.col} ---- {.fn}'
+    )
+  ) |> 
+  pivot_longer(
+    cols = everything()
+  )
+
+knitr::kable(FSDescriptivesMale)
+
+```
+
+
+### ANS Means 
+
+As mentioned in the manuscript, some individuals SC that exceeded the maximum threshold of 9.99 of the NeuLog instrument. Therefore, there is sample number variation between HR, SC. Additionally, there are two tasks present which subdivided the sample further. 
+
+
+```{r}
+
+
+
+# Full 
+
+## Baseline 
+
+stat.desc(FSFHRT1$HRbaseline)
+
+stat.desc(FSFSCT1$SCbaseline)
+
+
+## Social Stressor 
+
+stat.desc(SSFHRT1$SSHRCombAUCi)
+
+stat.desc(SSFSCT1$SSSCCombAUCi)
+
+## Countdown 
+
+stat.desc(CDFHRT1$CDHeartSignal12)
+stat.desc(CDFHRT1$CDHeartUnsig12)
+
+stat.desc(CDFHRT1$HrSigRecovMean)
+stat.desc(CDFHRT1$HrUnSigRecovMean)
+
+stat.desc(CDFSCT1$CDSkinSignal12)
+stat.desc(CDFSCT1$CDSkinUnsig12)
+
+stat.desc(CDFSCT1$ScSigRecovMean)
+stat.desc(CDFSCT1$ScUnSigRecovMean)
+
+
+
+# Male 
+
+## Baseline 
+
+stat.desc(MHRbT1$HRbaseline)
+
+stat.desc(MSCbT1$SCbaseline)
+
+
+## Social Stressor 
+
+stat.desc(MSSHRT1$SSHRCombAUCi)
+
+stat.desc(MSSSCT1$SSSCCombAUCi)
+
+## Countdown 
+
+stat.desc(MCDHRT1$CDHeartSignal12)
+stat.desc(MCDHRT1$CDHeartUnsig12)
+
+stat.desc(MCDHRT1$HrSigRecovMean)
+stat.desc(MCDHRT1$HrUnSigRecovMean)
+
+stat.desc(MCDSCT1$CDSkinSignal12)
+stat.desc(MCDSCT1$CDSkinUnsig12)
+
+stat.desc(MCDSCT1$ScSigRecovMean)
+stat.desc(MCDSCT1$ScUnSigRecovMean)
+
+
+# Female 
+
+## Baseline 
+
+stat.desc(FemaleHRbaseT1$HRbaseline)
+
+stat.desc(FemaleSCbaseT1$SCbaseline)
+
+
+## Social Stressor 
+
+stat.desc(FemaleSSHRT1$SSHRCombAUCi)
+
+stat.desc(FemaleSCSST1$SSSCCombAUCi)
+
+## Countdown 
+
+stat.desc(FemaleHRCDT1$CDHeartSignal12)
+stat.desc(FemaleHRCDT1$CDHeartUnsig12)
+
+stat.desc(FemaleHRCDT1$HrSigRecovMean)
+stat.desc(FemaleHRCDT1$HrUnSigRecovMean)
+
+stat.desc(FemaleSCCDT1$CDSkinSignal12)
+stat.desc(FemaleSCCDT1$CDSkinUnsig12)
+
+stat.desc(FemaleSCCDT1$ScSigRecovMean)
+stat.desc(FemaleSCCDT1$ScUnSigRecovMean)
+
+```
+
+### t-tests 
+
+#### ANS
+
+```{r}
+
+
+# baseline 
+
+ind.t.test1<- t.test(HRbaseline ~ Gender, data = FSFHRT1)
+ind.t.test1
+ind.t.test1<- t.test(SCbaseline ~ Gender, data = FSFSCT1)
+ind.t.test1
+
+#SS
+ind.t.test1<- t.test(SSHRCombAUCi ~ Gender, data = SSFHRT1)
+ind.t.test1
+ind.t.test1<- t.test(SSSCCombAUCi ~ Gender, data = SSFSCT1)
+ind.t.test1
+
+# CD
+
+ind.t.test1<- t.test(CDHeartSignal12 ~ Gender, data = CDFHRT1)
+ind.t.test1
+ind.t.test1<- t.test(CDHeartUnsig12 ~ Gender, data = CDFHRT1)
+ind.t.test1
+ind.t.test1<- t.test(HrSigRecovMean ~ Gender, data = CDFHRT1)
+ind.t.test1
+ind.t.test1<- t.test(HrUnSigRecovMean ~ Gender, data = CDFHRT1)
+ind.t.test1
+
+
+ind.t.test1<- t.test(CDSkinSignal12 ~ Gender, data = CDFSCT1)
+ind.t.test1
+ind.t.test1<- t.test(CDSkinUnsig12 ~ Gender, data = CDFSCT1)
+ind.t.test1
+ind.t.test1<- t.test(ScSigRecovMean ~ Gender, data = CDFSCT1)
+ind.t.test1
+ind.t.test1<- t.test(ScUnSigRecovMean ~ Gender, data = CDFSCT1)
+ind.t.test1
+
+
+```
+
+#### Survey 
+
+```{r}
+
+# SRP 
+
+
+ind.t.test1<- t.test(SRPTotalScore ~ Gender, data = FSFSurveyT1)
+ind.t.test1
+ind.t.test1<- t.test(SRPIPMTotal ~ Gender, data = FSFSurveyT1)
+ind.t.test1
+ind.t.test1<- t.test(SRPCATotal ~ Gender, data = FSFSurveyT1)
+ind.t.test1
+ind.t.test1<- t.test(SRPELSTotal ~ Gender, data = FSFSurveyT1)
+ind.t.test1
+ind.t.test1<- t.test(SRPASBTotal ~ Gender, data = FSFSurveyT1)
+ind.t.test1
+
+# ICU 
+
+
+ind.t.test1<- t.test(ICUTotScore ~ Gender, data = FSFSurveyT1)
+ind.t.test1
+ind.t.test1<- t.test(ICUUncareTotalScore ~ Gender, data = FSFSurveyT1)
+ind.t.test1
+ind.t.test1<- t.test(ICUUnemoTotal ~ Gender, data = FSFSurveyT1)
+ind.t.test1
+
+
+# LSRP
+
+ind.t.test1<- t.test(LevTotalScore ~ Gender, data = FSFSurveyT1)
+ind.t.test1
+ind.t.test1<- t.test(LevPrimTotalScore ~ Gender, data = FSFSurveyT1)
+ind.t.test1
+ind.t.test1<- t.test(LevSecTotalScore ~ Gender, data = FSFSurveyT1)
+ind.t.test1
+
+# SSS
+
+ind.t.test1<- t.test(SSSTotalScore ~ Gender, data = FSFSurveyT1)
+ind.t.test1
+ind.t.test1<- t.test(SSSDISTotal ~ Gender, data = FSFSurveyT1)
+ind.t.test1
+ind.t.test1<- t.test(SSSThrilTotal ~ Gender, data = FSFSurveyT1)
+ind.t.test1
+
+
+
+
+```
+
+## Distributions of DVs
+
+```{r}
+
+# Histogram function 
+
+histo <- function(df, var, title = "Histogram", xlab = "DV", ylab = "Frequency", col = "honeydew", border = "black", bins = 5){
+  df |> 
+  ggplot(aes(x = {{var}})) +
+    geom_histogram(binwidth = bins, fill = col, color = border) +
+    labs(title = title, x = xlab, y = ylab)
+}
+
+
+```
+
+### SRP Full
+Normal = SRPTot, SRPIPMTotal, SRPCATotal, SRPELSTotal     
+Non-Normal = SRPASBTotal
+
+```{r}
+
+# SRPTot 
+
+FSFSurveyT1 |> 
+  histo(SRPTotalScore)
+    
+qqnorm(FSFSurveyT1$SRPTotalScore)
+qqline(FSFSurveyT1$SRPTotalScore)
+
+shapiro.test(FSFSurveyT1$SRPTotalScore)
+
+
+
+# SRP IPM 
+
+FSFSurveyT1 |> 
+  histo(SRPIPMTotal)
+
+
+qqnorm(FSFSurveyT1$SRPIPMTotal)
+qqline(FSFSurveyT1$SRPIPMTotal)
+
+shapiro.test(FSFSurveyT1$SRPIPMTotal)
+
+# SRPCATotal
+
+FSFSurveyT1 |> 
+  histo(SRPCATotal)
+
+
+qqnorm(FSFSurveyT1$SRPCATotal)
+qqline(FSFSurveyT1$SRPCATotal)
+
+shapiro.test(FSFSurveyT1$SRPCATotal)
+
+
+# SRPELSTotal
+
+FSFSurveyT1 |> 
+  histo(SRPELSTotal)
+
+
+qqnorm(FSFSurveyT1$SRPELSTotal)
+qqline(FSFSurveyT1$SRPELSTotal)
+
+shapiro.test(FSFSurveyT1$SRPELSTotal)
+
+
+# SRPASBTotal
+
+
+FSFSurveyT1 |> 
+  histo(SRPASBTotal)
+
+
+qqnorm(FSFSurveyT1$SRPASBTotal)
+qqline(FSFSurveyT1$SRPASBTotal)
+
+shapiro.test(FSFSurveyT1$SRPASBTotal)
+
+```
+
+### ICU Full 
+
+Non-Normal =  ICUTotScore, ICUUncareTotalScore, ICUUnemoTotal
+
+```{r}
+
+# ICUtotal 
+
+FSFSurveyT1 |> 
+  histo(ICUTotScore)
+
+
+qqnorm(FSFSurveyT1$ICUTotScore)
+qqline(FSFSurveyT1$ICUTotScore)
+
+shapiro.test(FSFSurveyT1$ICUTotScore)
+
+
+# ICUUncare
+
+FSFSurveyT1 |> 
+  histo(ICUUncareTotalScore)
+
+
+qqnorm(FSFSurveyT1$ICUUncareTotalScore)
+qqline(FSFSurveyT1$ICUUncareTotalScore)
+
+shapiro.test(FSFSurveyT1$ICUUncareTotalScore)
+
+
+# Unemo 
+
+FSFSurveyT1 |> 
+  histo(ICUUnemoTotal)
+
+
+qqnorm(FSFSurveyT1$ICUUnemoTotal)
+qqline(FSFSurveyT1$ICUUnemoTotal)
+
+shapiro.test(FSFSurveyT1$ICUUnemoTotal)
+
+```
+
+
+### Lev full 
+
+Normal = LevTotalScore, LevSecTotalScore  
+Non-Normal = LevPrimTotalScore
+```{r}
+
+# Leve tot 
+
+
+FSFSurveyT1 |> 
+  histo(LevTotalScore)
+
+
+qqnorm(FSFSurveyT1$LevTotalScore)
+qqline(FSFSurveyT1$LevTotalScore)
+
+shapiro.test(FSFSurveyT1$LevTotalScore)
+
+# lev prim 
+
+
+FSFSurveyT1 |> 
+  histo(LevPrimTotalScore)
+
+
+qqnorm(FSFSurveyT1$LevPrimTotalScore)
+qqline(FSFSurveyT1$LevPrimTotalScore)
+
+shapiro.test(FSFSurveyT1$LevPrimTotalScore)
+
+
+# lev sec
+
+FSFSurveyT1 |> 
+  histo(LevSecTotalScore)
+
+qqnorm(FSFSurveyT1$LevSecTotalScore)
+qqline(FSFSurveyT1$LevSecTotalScore)
+
+shapiro.test(FSFSurveyT1$LevSecTotalScore)
+
+
+```
+
+### SSS Full
+Normal = SSSTotalScore   
+Non-Normal = SSSDISTotal, SSSThrilTotal
+
+```{r}
+# SSS total 
+
+FSFSurveyT1 |> 
+  histo(SSSTotalScore)
+
+qqnorm(FSFSurveyT1$SSSTotalScore)
+qqline(FSFSurveyT1$SSSTotalScore)
+
+shapiro.test(FSFSurveyT1$SSSTotalScore)
+
+# SSS dis 
+
+FSFSurveyT1 |> 
+  histo(SSSDISTotal)
+
+qqnorm(FSFSurveyT1$SSSDISTotal)
+qqline(FSFSurveyT1$SSSDISTotal)
+
+shapiro.test(FSFSurveyT1$SSSDISTotal)
+
+
+# SSSThrilTotal
+FSFSurveyT1 |> 
+  histo(SSSThrilTotal)
+
+qqnorm(FSFSurveyT1$SSSThrilTotal)
+qqline(FSFSurveyT1$SSSThrilTotal)
+
+shapiro.test(FSFSurveyT1$SSSThrilTotal)
+
+
+
+
+```
+
+
+
+## Table 2 (Partial Correlations for Rest and SSST) 
+
+This table contain the baseline and SSST measures will partialing the correlations for gender, race, and age. 
+
+
+### Full
+#### HR baseline
+```{r}
+
+#SRP
+
+pcor.test(FSFHRT1$SRPTotalScore, FSFHRT1$HRbaseline, list(FSFHRT1$Female, FSFHRT1$White, FSFHRT1$Age), method = "pearson")
+
+pcor.test(FSFHRT1$SRPIPMTotal, FSFHRT1$HRbaseline, list(FSFHRT1$Female, FSFHRT1$White, FSFHRT1$Age), method = "pearson")
+
+pcor.test(FSFHRT1$SRPCATotal, FSFHRT1$HRbaseline, list(FSFHRT1$Female, FSFHRT1$White, FSFHRT1$Age), method = "pearson")
+
+pcor.test(FSFHRT1$SRPELSTotal, FSFHRT1$HRbaseline, list(FSFHRT1$Female, FSFHRT1$White, FSFHRT1$Age), method = "pearson")
+
+pcor.test(FSFHRT1$SRPASBTotal, FSFHRT1$HRbaseline, list(FSFHRT1$Female, FSFHRT1$White, FSFHRT1$Age), method = "spearman")
+
+# ICU
+
+pcor.test(FSFHRT1$ICUTotScore, FSFHRT1$HRbaseline, list(FSFHRT1$Female, FSFHRT1$White, FSFHRT1$Age), method = "spearman")
+
+pcor.test(FSFHRT1$ICUUncareTotalScore, FSFHRT1$HRbaseline, list(FSFHRT1$Female, FSFHRT1$White, FSFHRT1$Age), method = "spearman")
+
+pcor.test(FSFHRT1$ICUUnemoTotal, FSFHRT1$HRbaseline, list(FSFHRT1$Female, FSFHRT1$White, FSFHRT1$Age), method = "spearman")
+
+# Lev
+
+pcor.test(FSFHRT1$LevTotalScore, FSFHRT1$HRbaseline, list(FSFHRT1$Female, FSFHRT1$White, FSFHRT1$Age), method = "pearson")
+
+pcor.test(FSFHRT1$LevPrimTotalScore, FSFHRT1$HRbaseline, list(FSFHRT1$Female, FSFHRT1$White, FSFHRT1$Age), method = "spearman")
+
+pcor.test(FSFHRT1$LevSecTotalScore, FSFHRT1$HRbaseline, list(FSFHRT1$Female, FSFHRT1$White, FSFHRT1$Age), method = "pearson")
+
+# SSS 
+
+pcor.test(FSFHRT1$SSSTotalScore, FSFHRT1$HRbaseline, list(FSFHRT1$Female, FSFHRT1$White, FSFHRT1$Age), method = "pearson")
+
+pcor.test(FSFHRT1$SSSDISTotal, FSFHRT1$HRbaseline, list(FSFHRT1$Female, FSFHRT1$White, FSFHRT1$Age), method = "spearman")
+
+pcor.test(FSFHRT1$SSSThrilTotal, FSFHRT1$HRbaseline, list(FSFHRT1$Female, FSFHRT1$White, FSFHRT1$Age), method = "spearman")
+
+
+
+```
+
+#### SC baseline
+```{r}
+
+#SRP
+
+pcor.test(FSFSCT1$SRPTotalScore, FSFSCT1$SCbaseline, list(FSFSCT1$Female, FSFSCT1$White, FSFSCT1$Age),method = "pearson")
+
+pcor.test(FSFSCT1$SRPIPMTotal, FSFSCT1$SCbaseline, list(FSFSCT1$Female, FSFSCT1$White, FSFSCT1$Age), method = "pearson")
+
+pcor.test(FSFSCT1$SRPCATotal, FSFSCT1$SCbaseline, list(FSFSCT1$Female, FSFSCT1$White, FSFSCT1$Age), method = "pearson")
+
+pcor.test(FSFSCT1$SRPELSTotal, FSFSCT1$SCbaseline, list(FSFSCT1$Female, FSFSCT1$White, FSFSCT1$Age), method = "pearson")
+
+pcor.test(FSFSCT1$SRPASBTotal, FSFSCT1$SCbaseline, list(FSFSCT1$Female, FSFSCT1$White, FSFSCT1$Age), method = "spearman")
+
+# ICU
+
+pcor.test(FSFSCT1$ICUTotScore, FSFSCT1$SCbaseline, list(FSFSCT1$Female, FSFSCT1$White, FSFSCT1$Age), method = "spearman")
+
+pcor.test(FSFSCT1$ICUUncareTotalScore, FSFSCT1$SCbaseline, list(FSFSCT1$Female, FSFSCT1$White, FSFSCT1$Age), method = "spearman")
+
+pcor.test(FSFSCT1$ICUUnemoTotal, FSFSCT1$SCbaseline, list(FSFSCT1$Female, FSFSCT1$White, FSFSCT1$Age), method = "spearman")
+
+# Lev
+
+pcor.test(FSFSCT1$LevTotalScore, FSFSCT1$SCbaseline, list(FSFSCT1$Female, FSFSCT1$White, FSFSCT1$Age), method = "pearson")
+
+pcor.test(FSFSCT1$LevPrimTotalScore, FSFSCT1$SCbaseline, list(FSFSCT1$Female, FSFSCT1$White, FSFSCT1$Age), method = "spearman")
+
+pcor.test(FSFSCT1$LevSecTotalScore, FSFSCT1$SCbaseline, list(FSFSCT1$Female, FSFSCT1$White, FSFSCT1$Age), method = "pearson")
+
+# SSS 
+
+pcor.test(FSFSCT1$SSSTotalScore, FSFSCT1$SCbaseline, list(FSFSCT1$Female, FSFSCT1$White, FSFSCT1$Age), method = "pearson")
+
+pcor.test(FSFSCT1$SSSDISTotal, FSFSCT1$SCbaseline, list(FSFSCT1$Female, FSFSCT1$White, FSFSCT1$Age), method = "spearman")
+
+pcor.test(FSFSCT1$SSSThrilTotal, FSFSCT1$SCbaseline, list(FSFSCT1$Female, FSFSCT1$White, FSFSCT1$Age), method = "spearman")
+
+
+```
+
+
+#### Social Stressor 
+```{r}
+
+## Heart Rate 
+#SRP
+
+pcor.test(SSFHRT1$SRPTotalScore, SSFHRT1$SSHRCombAUCi, list(SSFHRT1$Female, SSFHRT1$White, SSFHRT1$Age),method = "pearson")
+
+pcor.test(SSFHRT1$SRPIPMTotal, SSFHRT1$SSHRCombAUCi, list(SSFHRT1$Female, SSFHRT1$White, SSFHRT1$Age), method = "pearson")
+
+pcor.test(SSFHRT1$SRPCATotal, SSFHRT1$SSHRCombAUCi, list(SSFHRT1$Female, SSFHRT1$White, SSFHRT1$Age), method = "pearson")
+
+pcor.test(SSFHRT1$SRPELSTotal, SSFHRT1$SSHRCombAUCi, list(SSFHRT1$Female, SSFHRT1$White, SSFHRT1$Age), method = "pearson")
+
+pcor.test(SSFHRT1$SRPASBTotal, SSFHRT1$SSHRCombAUCi, list(SSFHRT1$Female, SSFHRT1$White, SSFHRT1$Age), method = "spearman")
+
+# ICU
+
+pcor.test(SSFHRT1$ICUTotScore, SSFHRT1$SSHRCombAUCi, list(SSFHRT1$Female, SSFHRT1$White, SSFHRT1$Age), method = "spearman")
+
+pcor.test(SSFHRT1$ICUUncareTotalScore, SSFHRT1$SSHRCombAUCi, list(SSFHRT1$Female, SSFHRT1$White, SSFHRT1$Age), method = "spearman")
+
+pcor.test(SSFHRT1$ICUUnemoTotal, SSFHRT1$SSHRCombAUCi, list(SSFHRT1$Female, SSFHRT1$White, SSFHRT1$Age), method = "spearman")
+
+# Lev
+
+pcor.test(SSFHRT1$LevTotalScore, SSFHRT1$SSHRCombAUCi, list(SSFHRT1$Female, SSFHRT1$White, SSFHRT1$Age), method = "pearson")
+
+pcor.test(SSFHRT1$LevPrimTotalScore, SSFHRT1$SSHRCombAUCi, list(SSFHRT1$Female, SSFHRT1$White, SSFHRT1$Age), method = "spearman")
+
+pcor.test(SSFHRT1$LevSecTotalScore, SSFHRT1$SSHRCombAUCi, list(SSFHRT1$Female, SSFHRT1$White, SSFHRT1$Age), method = "pearson")
+
+# SSS 
+
+pcor.test(SSFHRT1$SSSTotalScore, SSFHRT1$SSHRCombAUCi, list(SSFHRT1$Female, SSFHRT1$White, SSFHRT1$Age), method = "pearson")
+
+pcor.test(SSFHRT1$SSSDISTotal, SSFHRT1$SSHRCombAUCi, list(SSFHRT1$Female, SSFHRT1$White, SSFHRT1$Age), method = "spearman")
+
+pcor.test(SSFHRT1$SSSThrilTotal, SSFHRT1$SSHRCombAUCi, list(SSFHRT1$Female, SSFHRT1$White, SSFHRT1$Age), method = "spearman")
+
+
+
+## Skin Conductance 
+
+#SRP
+
+pcor.test(SSFSCT1$SRPTotalScore, SSFSCT1$SSSCCombAUCi, list(SSFSCT1$Female, SSFSCT1$White, SSFSCT1$Age),method = "pearson")
+
+pcor.test(SSFSCT1$SRPIPMTotal, SSFSCT1$SSSCCombAUCi, list(SSFSCT1$Female, SSFSCT1$White, SSFSCT1$Age), method = "pearson")
+
+pcor.test(SSFSCT1$SRPCATotal, SSFSCT1$SSSCCombAUCi, list(SSFSCT1$Female, SSFSCT1$White, SSFSCT1$Age), method = "pearson")
+
+pcor.test(SSFSCT1$SRPELSTotal, SSFSCT1$SSSCCombAUCi, list(SSFSCT1$Female, SSFSCT1$White, SSFSCT1$Age), method = "pearson")
+
+pcor.test(SSFSCT1$SRPASBTotal, SSFSCT1$SSSCCombAUCi, list(SSFSCT1$Female, SSFSCT1$White, SSFSCT1$Age), method = "spearman")
+
+# ICU
+
+pcor.test(SSFSCT1$ICUTotScore, SSFSCT1$SSSCCombAUCi, list(SSFSCT1$Female, SSFSCT1$White, SSFSCT1$Age), method = "spearman")
+
+pcor.test(SSFSCT1$ICUUncareTotalScore, SSFSCT1$SSSCCombAUCi, list(SSFSCT1$Female, SSFSCT1$White, SSFSCT1$Age), method = "spearman")
+
+pcor.test(SSFSCT1$ICUUnemoTotal, SSFSCT1$SSSCCombAUCi, list(SSFSCT1$Female, SSFSCT1$White, SSFSCT1$Age), method = "spearman")
+
+# Lev
+
+pcor.test(SSFSCT1$LevTotalScore, SSFSCT1$SSSCCombAUCi, list(SSFSCT1$Female, SSFSCT1$White, SSFSCT1$Age), method = "pearson")
+
+pcor.test(SSFSCT1$LevPrimTotalScore, SSFSCT1$SSSCCombAUCi, list(SSFSCT1$Female, SSFSCT1$White, SSFSCT1$Age), method = "spearman")
+
+pcor.test(SSFSCT1$LevSecTotalScore, SSFSCT1$SSSCCombAUCi, list(SSFSCT1$Female, SSFSCT1$White, SSFSCT1$Age), method = "pearson")
+
+# SSS 
+
+pcor.test(SSFSCT1$SSSTotalScore, SSFSCT1$SSSCCombAUCi, list(SSFSCT1$Female, SSFSCT1$White, SSFSCT1$Age), method = "pearson")
+
+pcor.test(SSFSCT1$SSSDISTotal, SSFSCT1$SSSCCombAUCi, list(SSFSCT1$Female, SSFSCT1$White, SSFSCT1$Age), method = "spearman")
+
+pcor.test(SSFSCT1$SSSThrilTotal, SSFSCT1$SSSCCombAUCi, list(SSFSCT1$Female, SSFSCT1$White, SSFSCT1$Age), method = "spearman")
+
+```
+
+
+
+## Table 3 (Partial Correlations for CD) 
+
+This table contain the CD measures will partialing the correlations for gender, race, and age. 
+
+#### Countdown 
+
+```{r}
+
+
+## HR Signaled 
+
+#SRP
+
+pcor.test(CDFHRT1$SRPTotalScore, CDFHRT1$CDHeartSignal12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age),method = "pearson")
+
+pcor.test(CDFHRT1$SRPIPMTotal, CDFHRT1$CDHeartSignal12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "pearson")
+
+pcor.test(CDFHRT1$SRPCATotal, CDFHRT1$CDHeartSignal12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "pearson")
+
+pcor.test(CDFHRT1$SRPELSTotal, CDFHRT1$CDHeartSignal12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "pearson")
+
+pcor.test(CDFHRT1$SRPASBTotal, CDFHRT1$CDHeartSignal12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+# ICU
+
+pcor.test(CDFHRT1$ICUTotScore, CDFHRT1$CDHeartSignal12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+pcor.test(CDFHRT1$ICUUncareTotalScore, CDFHRT1$CDHeartSignal12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+pcor.test(CDFHRT1$ICUUnemoTotal, CDFHRT1$CDHeartSignal12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+# Lev
+
+pcor.test(CDFHRT1$LevTotalScore, CDFHRT1$CDHeartSignal12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "pearson")
+
+pcor.test(CDFHRT1$LevPrimTotalScore, CDFHRT1$CDHeartSignal12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+pcor.test(CDFHRT1$LevSecTotalScore, CDFHRT1$CDHeartSignal12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "pearson")
+
+# SSS 
+
+pcor.test(CDFHRT1$SSSTotalScore, CDFHRT1$CDHeartSignal12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "pearson")
+
+pcor.test(CDFHRT1$SSSDISTotal, CDFHRT1$CDHeartSignal12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+pcor.test(CDFHRT1$SSSThrilTotal, CDFHRT1$CDHeartSignal12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+
+## HR Unsignaled 
+
+#SRP
+
+pcor.test(CDFHRT1$SRPTotalScore, CDFHRT1$CDHeartUnsig12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age),method = "pearson")
+
+pcor.test(CDFHRT1$SRPIPMTotal, CDFHRT1$CDHeartUnsig12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "pearson")
+
+pcor.test(CDFHRT1$SRPCATotal, CDFHRT1$CDHeartUnsig12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "pearson")
+
+pcor.test(CDFHRT1$SRPELSTotal, CDFHRT1$CDHeartUnsig12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "pearson")
+
+pcor.test(CDFHRT1$SRPASBTotal, CDFHRT1$CDHeartUnsig12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+# ICU
+
+pcor.test(CDFHRT1$ICUTotScore, CDFHRT1$CDHeartUnsig12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+pcor.test(CDFHRT1$ICUUncareTotalScore, CDFHRT1$CDHeartUnsig12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+pcor.test(CDFHRT1$ICUUnemoTotal, CDFHRT1$CDHeartUnsig12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+# Lev
+
+pcor.test(CDFHRT1$LevTotalScore, CDFHRT1$CDHeartUnsig12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "pearson")
+
+pcor.test(CDFHRT1$LevPrimTotalScore, CDFHRT1$CDHeartUnsig12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+pcor.test(CDFHRT1$LevSecTotalScore, CDFHRT1$CDHeartUnsig12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "pearson")
+
+# SSS 
+
+pcor.test(CDFHRT1$SSSTotalScore, CDFHRT1$CDHeartUnsig12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "pearson")
+
+pcor.test(CDFHRT1$SSSDISTotal, CDFHRT1$CDHeartUnsig12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+pcor.test(CDFHRT1$SSSThrilTotal, CDFHRT1$CDHeartUnsig12, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+## SC signaled 
+
+
+
+#SRP
+
+pcor.test(CDFSCT1$SRPTotalScore, CDFSCT1$CDSkinSignal12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age),method = "pearson")
+
+pcor.test(CDFSCT1$SRPIPMTotal, CDFSCT1$CDSkinSignal12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "pearson")
+
+pcor.test(CDFSCT1$SRPCATotal, CDFSCT1$CDSkinSignal12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "pearson")
+
+pcor.test(CDFSCT1$SRPELSTotal, CDFSCT1$CDSkinSignal12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "pearson")
+
+pcor.test(CDFSCT1$SRPASBTotal, CDFSCT1$CDSkinSignal12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+# ICU
+
+pcor.test(CDFSCT1$ICUTotScore, CDFSCT1$CDSkinSignal12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+pcor.test(CDFSCT1$ICUUncareTotalScore, CDFSCT1$CDSkinSignal12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+pcor.test(CDFSCT1$ICUUnemoTotal, CDFSCT1$CDSkinSignal12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+# Lev
+
+pcor.test(CDFSCT1$LevTotalScore, CDFSCT1$CDSkinSignal12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "pearson")
+
+pcor.test(CDFSCT1$LevPrimTotalScore, CDFSCT1$CDSkinSignal12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+pcor.test(CDFSCT1$LevSecTotalScore, CDFSCT1$CDSkinSignal12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "pearson")
+
+# SSS 
+
+pcor.test(CDFSCT1$SSSTotalScore, CDFSCT1$CDSkinSignal12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "pearson")
+
+pcor.test(CDFSCT1$SSSDISTotal, CDFSCT1$CDSkinSignal12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+pcor.test(CDFSCT1$SSSThrilTotal, CDFSCT1$CDSkinSignal12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+
+## SC Unsignaled 
+
+#SRP
+
+pcor.test(CDFSCT1$SRPTotalScore, CDFSCT1$CDSkinUnsig12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age),method = "pearson")
+
+pcor.test(CDFSCT1$SRPIPMTotal, CDFSCT1$CDSkinUnsig12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "pearson")
+
+pcor.test(CDFSCT1$SRPCATotal, CDFSCT1$CDSkinUnsig12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "pearson")
+
+pcor.test(CDFSCT1$SRPELSTotal, CDFSCT1$CDSkinUnsig12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "pearson")
+
+pcor.test(CDFSCT1$SRPASBTotal, CDFSCT1$CDSkinUnsig12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+# ICU
+
+pcor.test(CDFSCT1$ICUTotScore, CDFSCT1$CDSkinUnsig12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+pcor.test(CDFSCT1$ICUUncareTotalScore, CDFSCT1$CDSkinUnsig12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+pcor.test(CDFSCT1$ICUUnemoTotal, CDFSCT1$CDSkinUnsig12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+# Lev
+
+pcor.test(CDFSCT1$LevTotalScore, CDFSCT1$CDSkinUnsig12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "pearson")
+
+pcor.test(CDFSCT1$LevPrimTotalScore, CDFSCT1$CDSkinUnsig12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+pcor.test(CDFSCT1$LevSecTotalScore, CDFSCT1$CDSkinUnsig12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "pearson")
+
+# SSS 
+
+pcor.test(CDFSCT1$SSSTotalScore, CDFSCT1$CDSkinUnsig12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "pearson")
+
+pcor.test(CDFSCT1$SSSDISTotal, CDFSCT1$CDSkinUnsig12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+pcor.test(CDFSCT1$SSSThrilTotal, CDFSCT1$CDSkinUnsig12, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+
+
+```
+
+##### Recovery Measures Partials
+
+Heart Rate
+
+```{r}
+
+## HR Signaled 
+
+#SRP
+
+pcor.test(CDFHRT1$SRPTotalScore, CDFHRT1$HrSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age),method = "pearson")
+
+pcor.test(CDFHRT1$SRPIPMTotal, CDFHRT1$HrSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "pearson")
+
+pcor.test(CDFHRT1$SRPCATotal, CDFHRT1$HrSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "pearson")
+
+pcor.test(CDFHRT1$SRPELSTotal, CDFHRT1$HrSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "pearson")
+
+pcor.test(CDFHRT1$SRPASBTotal, CDFHRT1$HrSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+# ICU
+
+pcor.test(CDFHRT1$ICUTotScore, CDFHRT1$HrSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+pcor.test(CDFHRT1$ICUUncareTotalScore, CDFHRT1$HrSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+pcor.test(CDFHRT1$ICUUnemoTotal, CDFHRT1$HrSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+# Lev
+
+pcor.test(CDFHRT1$LevTotalScore, CDFHRT1$HrSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "pearson")
+
+pcor.test(CDFHRT1$LevPrimTotalScore, CDFHRT1$HrSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+pcor.test(CDFHRT1$LevSecTotalScore, CDFHRT1$HrSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "pearson")
+
+# SSS 
+
+pcor.test(CDFHRT1$SSSTotalScore, CDFHRT1$HrSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "pearson")
+
+pcor.test(CDFHRT1$SSSDISTotal, CDFHRT1$HrSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+pcor.test(CDFHRT1$SSSThrilTotal, CDFHRT1$HrSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+
+## HR Unsignaled 
+
+#SRP
+
+pcor.test(CDFHRT1$SRPTotalScore, CDFHRT1$HrUnSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age),method = "pearson")
+
+pcor.test(CDFHRT1$SRPIPMTotal, CDFHRT1$HrUnSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "pearson")
+
+pcor.test(CDFHRT1$SRPCATotal, CDFHRT1$HrUnSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "pearson")
+
+pcor.test(CDFHRT1$SRPELSTotal, CDFHRT1$HrUnSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "pearson")
+
+pcor.test(CDFHRT1$SRPASBTotal, CDFHRT1$HrUnSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+# ICU
+
+pcor.test(CDFHRT1$ICUTotScore, CDFHRT1$HrUnSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+pcor.test(CDFHRT1$ICUUncareTotalScore, CDFHRT1$HrUnSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+pcor.test(CDFHRT1$ICUUnemoTotal, CDFHRT1$HrUnSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+# Lev
+
+pcor.test(CDFHRT1$LevTotalScore, CDFHRT1$HrUnSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "pearson")
+
+pcor.test(CDFHRT1$LevPrimTotalScore, CDFHRT1$HrUnSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+pcor.test(CDFHRT1$LevSecTotalScore, CDFHRT1$HrUnSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "pearson")
+
+# SSS 
+
+pcor.test(CDFHRT1$SSSTotalScore, CDFHRT1$HrUnSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "pearson")
+
+pcor.test(CDFHRT1$SSSDISTotal, CDFHRT1$HrUnSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+pcor.test(CDFHRT1$SSSThrilTotal, CDFHRT1$HrUnSigRecovMean, list(CDFHRT1$Female, CDFHRT1$White, CDFHRT1$Age), method = "spearman")
+
+
+
+
+```
+
+Skin Conductance 
+
+```{r}
+
+
+## SC signaled 
+
+
+
+#SRP
+
+pcor.test(CDFSCT1$SRPTotalScore, CDFSCT1$ScSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age),method = "pearson")
+
+pcor.test(CDFSCT1$SRPIPMTotal, CDFSCT1$ScSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "pearson")
+
+pcor.test(CDFSCT1$SRPCATotal, CDFSCT1$ScSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "pearson")
+
+pcor.test(CDFSCT1$SRPELSTotal, CDFSCT1$ScSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "pearson")
+
+pcor.test(CDFSCT1$SRPASBTotal, CDFSCT1$ScSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+# ICU
+
+pcor.test(CDFSCT1$ICUTotScore, CDFSCT1$ScSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+pcor.test(CDFSCT1$ICUUncareTotalScore, CDFSCT1$ScSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+pcor.test(CDFSCT1$ICUUnemoTotal, CDFSCT1$ScSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+# Lev
+
+pcor.test(CDFSCT1$LevTotalScore, CDFSCT1$ScSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "pearson")
+
+pcor.test(CDFSCT1$LevPrimTotalScore, CDFSCT1$ScSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+pcor.test(CDFSCT1$LevSecTotalScore, CDFSCT1$ScSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "pearson")
+
+# SSS 
+
+pcor.test(CDFSCT1$SSSTotalScore, CDFSCT1$ScSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "pearson")
+
+pcor.test(CDFSCT1$SSSDISTotal, CDFSCT1$ScSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+pcor.test(CDFSCT1$SSSThrilTotal, CDFSCT1$ScSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+
+## SC Unsignaled 
+
+#SRP
+
+pcor.test(CDFSCT1$SRPTotalScore, CDFSCT1$ScUnSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age),method = "pearson")
+
+pcor.test(CDFSCT1$SRPIPMTotal, CDFSCT1$ScUnSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "pearson")
+
+pcor.test(CDFSCT1$SRPCATotal, CDFSCT1$ScUnSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "pearson")
+
+pcor.test(CDFSCT1$SRPELSTotal, CDFSCT1$ScUnSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "pearson")
+
+pcor.test(CDFSCT1$SRPASBTotal, CDFSCT1$ScUnSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+# ICU
+
+pcor.test(CDFSCT1$ICUTotScore, CDFSCT1$ScUnSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+pcor.test(CDFSCT1$ICUUncareTotalScore, CDFSCT1$ScUnSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+pcor.test(CDFSCT1$ICUUnemoTotal, CDFSCT1$ScUnSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+# Lev
+
+pcor.test(CDFSCT1$LevTotalScore, CDFSCT1$ScUnSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "pearson")
+
+pcor.test(CDFSCT1$LevPrimTotalScore, CDFSCT1$ScUnSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+pcor.test(CDFSCT1$LevSecTotalScore, CDFSCT1$ScUnSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "pearson")
+
+# SSS 
+
+pcor.test(CDFSCT1$SSSTotalScore, CDFSCT1$ScUnSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "pearson")
+
+pcor.test(CDFSCT1$SSSDISTotal, CDFSCT1$ScUnSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+pcor.test(CDFSCT1$SSSThrilTotal, CDFSCT1$ScUnSigRecovMean, list(CDFSCT1$Female, CDFSCT1$White, CDFSCT1$Age), method = "spearman")
+
+
+
+```
+
+
+## Figures
+
+### Code for Fig 1
+
+#### HR
+
+```{r}
+#| output: False
+
+pacman::p_load(ggtext, fontawesome, showtext, sysfonts, patchwork, ggrepel)
+
+font_add_google("Roboto")
+showtext_auto()
+
+```
+
+
+```{r}
+
+custom_labels <- c(0, 25, 50, 75, 100, 125, 150, 175, 200, 225)
+
+HRViz <- ggplot(data12, aes(x = time, y = value)) +
+  geom_line(color = "#A7C7E7") +
+  geom_point(color = "#FF964F", size = 1) +
+  geom_label_repel(data = subset(data12, time == 24),
+                   aes(label = "Speech Task Begins"), 
+                   point.padding = 1,
+                   nudge_x = 0.7, 
+                   nudge_y = -2,
+                   arrow = arrow(length = unit(0.015, "npc")),
+                   family = "Roboto",
+                   size = 3
+                   ) +
+  labs(title = "Social Stressor Task: Heart Rate",
+       x = "Time (Seconds)",
+       y = "Heart Rate (BPM)") +
+  theme_minimal() +
+  theme(plot.title = element_text(family = "Roboto",
+                                  size = 12,
+                                  hjust = 0.5, 
+                                  face = "bold", 
+                                  margin = margin(b = 6)),
+        axis.title.y = element_text(family = "Roboto",
+                                    size = 10),
+        axis.title.x = element_text(family = "Roboto",
+                                    size = 10)) +
+  scale_x_continuous(breaks = seq(0, max(data12$time), by = 5),
+                     labels = custom_labels) +
+  scale_y_continuous(expand = expansion(mult = c(0.1, 0.1)),
+                     breaks = seq(floor(min(data12$value)), 
+                                  ceiling(max(data12$value)),
+                                  by = 1)) +
+  coord_cartesian(ylim = c((min(data12$value)) - 0.15, (max(data12$value)) + 0.15)) 
+
+
+
+
+
+
+```
+
+
+#### Skin Conductance 
+
+```{r}
+
+custom_labels <- c(0, 25, 50, 75, 100, 125, 150, 175, 200, 225)
+
+SCViz <- ggplot(data123, aes(x = time, 
+                             y = value)) +
+  geom_line(color = "#A7C7E7") +
+  geom_point(color = "#FF964F", 
+             size = 1) +
+  geom_label_repel(data = subset(data123, 
+                                 time == 24),
+                   aes(label = "Speech Task Begins"), 
+                   point.padding = 1,
+                   nudge_x = 1, 
+                   nudge_y = -0.3,
+                   arrow = arrow(length = unit(0.015, "npc")),
+                   family = "Roboto",
+                   size = 3
+                   ) +
+  labs(title = "Social Stressor Task: Skin Conductance",
+       x = "Time (Seconds)",
+       y = "Skin Conductance Level (μS)") +
+  theme_minimal() +
+  theme(plot.title = element_text(family = "Roboto",
+                                  size = 12,
+                                  hjust = 0.5, 
+                                  face = "bold", 
+                                  margin = margin(b = 6)),
+        axis.title.y = element_text(family = "Roboto",
+                                    size = 10),
+        axis.title.x = element_text(family = "Roboto",
+                                    size = 10)
+        ) +
+  scale_x_continuous(breaks = seq(0, max(data123$time), by = 5),
+                     labels = custom_labels)
+
+
+
+
+
+
+```
+
+
+### Plots (Fig 1)
+
+```{r}
+
+
+HRSCStacked <- HRViz / SCViz
+
+HRSCStacked
+
+```
+
+
+### Code for Fig 2
+
+#### HR
+
+```{r}
+CDHRVizStack <- ggplot(CDGraphHR,
+                  aes(x = time, 
+                      y = value, 
+                      group = group,
+                      color = group)) +
+  geom_line() +
+  geom_label_repel(
+    data = subset(CDGraphHR, time == 6 & group == "Signaled"),
+    aes(label = "Countdown Begins"), 
+    point.padding = 1,
+    nudge_x = 4.0, 
+    nudge_y = 0.6,
+    arrow = arrow(length = unit(0.015, "npc")),
+    family = "Roboto",
+    color = "black",
+    size = 2,
+    show.legend = FALSE
+  ) +
+    geom_label_repel(
+    data = subset(CDGraphHR, time == 18 & group == "Signaled"),
+    aes(label = "Noise Blast"), 
+    point.padding = 1,
+    nudge_x = 4, 
+    nudge_y = 0.5,
+    arrow = arrow(length = unit(0.015, "npc")),
+    family = "Roboto",
+    color = "black",
+    size = 2,
+    show.legend = FALSE
+  ) +
+  geom_vline(xintercept = 6, linetype = "solid", color = "#F5F5F5") +
+  geom_vline(xintercept = 18, linetype = "solid", color = "#F5F5F5") + 
+  scale_color_manual(values = c("Signaled" = "#A7C7E7",
+                                "Unsignaled" = "#E7BFA7"),
+                     labels = c("Signaled", "Unsignaled")) +
+  geom_point(color = "#FF964F", size = 1)  +
+  labs(title = "Countdown Task: Heart Rate",
+       x = "Time (Seconds)",
+       y = "Heart Rate (BPM)") +
+  theme_minimal() +
+  theme(plot.title = element_text(family = "Roboto",
+                                  size = 12,
+                                  hjust = 0.5, 
+                                  face = "bold", 
+                                  margin = margin(b = 6)),
+        axis.title.y = element_text(family = "Roboto",
+                                    size = 10),
+        axis.title.x = element_text(family = "Roboto",
+                                    size = 10),
+        legend.title = element_blank(),  
+        legend.text = element_text(family = "Roboto", 
+                                   size = 10), 
+        legend.position = "top"  
+        ) +
+  scale_y_continuous(expand = expansion(mult = c(0.1, 0.1)),
+                     breaks = seq(floor(min(CDGraphHR$value)), 
+                                  ceiling(max(CDGraphHR$value)),
+                                  by = 1)) +
+  coord_cartesian(ylim = c((min(CDGraphHR$value)) - 0.15, (max(CDGraphHR$value)) + 0.15)) 
+
+
+
+
+
+```
+
+#### SC
+
+```{r}
+CDSCVizStack <- ggplot(CDGraphSC,
+                  aes(x = time, 
+                      y = value, 
+                      group = group,
+                      color = group)) +
+  geom_line() +
+  geom_label_repel(
+    data = subset(CDGraphSC, time == 6 & group == "Unsignaled"),
+    aes(label = "Countdown Begins"), 
+    point.padding = 1,
+    nudge_x = 3.2, 
+    nudge_y = 0.3,
+    arrow = arrow(length = unit(0.015, "npc")),
+    family = "Roboto",
+    color = "black",
+    size = 2,
+    show.legend = FALSE
+  ) +
+    geom_label_repel(
+    data = subset(CDGraphSC, time == 18 & group == "Unsignaled"),
+    aes(label = "Noise Blast"), 
+    point.padding = 1,
+    nudge_x = -3, 
+    nudge_y = 0.3,
+    arrow = arrow(length = unit(0.015, "npc")),
+    family = "Roboto",
+    color = "black",
+    size = 2,
+    show.legend = FALSE
+  ) +
+  geom_vline(xintercept = 6, linetype = "solid", color = "#F5F5F5") +
+  geom_vline(xintercept = 18, linetype = "solid", color = "#F5F5F5") + 
+  scale_color_manual(values = c("Signaled" = "#A7C7E7",
+                                "Unsignaled" = "#E7BFA7"),
+                     labels = c("Signaled", "Unsignaled")) +
+  geom_point(color = "#FF964F", size = 1)  +
+  labs(title = "Countdown Task: Skin Conductance Level",
+       x = "Time (Seconds)",
+       y = "Skin Conductance Level (μS)") +
+  theme_minimal() +
+  theme(plot.title = element_text(family = "Roboto",
+                                  size = 12,
+                                  hjust = 0.5, 
+                                  face = "bold", 
+                                  margin = margin(b = 6)),
+        axis.title.y = element_text(family = "Roboto",
+                                    size = 10),
+        axis.title.x = element_text(family = "Roboto",
+                                    size = 10),
+        legend.title = element_blank(),  
+        legend.text = element_text(family = "Roboto", 
+                                   size = 10), 
+        legend.position = "top"  
+        ) 
+ 
+
+```
+
+
+
+### Plots (Fig 2)
+
+
+
+```{r}
+
+CDHRSCStacked <- CDHRVizStack / CDSCVizStack
+
+CDHRSCStacked
+
+```
+
+
+
+
