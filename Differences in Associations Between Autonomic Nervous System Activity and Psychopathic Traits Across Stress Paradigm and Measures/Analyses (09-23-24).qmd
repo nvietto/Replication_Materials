@@ -16,7 +16,7 @@ pacman::p_load(tidyverse, janitor, ppcor, ltm, pastecs, corrtable, psych)
 
 options(scipen=999)
 
-data <- read.csv("data2.csv") # Data mean imputed to compensate for 0s in autonomic measures 
+data <- read.csv("data2.csv") 
 
 data <- data[, -1]  # Removed x column that appears when exporting a csv from R
 
@@ -862,7 +862,7 @@ The formula for the AUC code below can be found [here](https://pubmed.ncbi.nlm.n
 
 ### AUC Social Stressor
 
-Within the HR measures for each stress paradigm, a small number of individuals had zero values in random columns (typically 1-4 columns or seconds). These zeros likely resulted from hand movements during the task. To retain these cases in the analysis, we replaced the zero values with the mean of the values from the second before and the second after the zero value.
+In the HR measures for each stress paradigm, a small number of individuals had zero values in random columns (typically 1-4 columns or seconds). These zeros likely resulted from minor, random hand movements during the task. While the data appeared to be missing completely at random (MCAR), which would justify excluding these cases, we chose to retain them to maximize sample size. Zero values were replaced by the mean of the values from the second before and the second after the zero.
 
 #### HR Combined
 
@@ -986,9 +986,9 @@ data$SSSCCombAUCi <- data$SSSCCombAUCg - (239 * data$SCbaseline)
 
 ### Difference Scores Countdown
 
+This was calculated using the following:  
 
-$Change Score = T2 (12 \,second  \,countdown  \,phase) - T1 (last  \,5  \,seconds \, of  \,rest \, phase)/trial time$
-
+$Change Score = T2 (12 \,second  \,countdown  \,phase) - T1 (last  \,5  \,seconds \, of  \,rest \, phase)/trial time$   
 
 #### SC 
 
@@ -1107,8 +1107,9 @@ data$CDHeartUnsig12 <- (data$CDHeartDifT2 + data$CDHeartDifT4)/2
 
 ### Countdown Recovery Measures 
 
-This was calculated using the following: 
-$Recovery Score = (mean \, of \, the \, 12 \, seconds \, after \, noise blast  \, – 5  \, mean \, of \, the  \,seconds  \, before  \, the  \,noise blast)$.  
+This was calculated using the following:  
+
+$Recovery Score = (mean \, of \, the \, 12 \, seconds \, after \, noise blast  \, – 5  \, mean \, of \, the  \,seconds  \, before  \, the  \,noise blast)$   
 
 #### Heart Rate Change Recovery (HRCR) 
 
