@@ -1,6 +1,6 @@
 
 
-###  **Differences in Associations Between Autonomic Nervous System Activity and Psychopathic Traits Across Stress Paradigm and Measures**
+###  **Differences in Associations Between Autonomic Nervous System Activity and Psychopathic Traits Across Stress Paradigms and Measures**
 
 Nicholas Vietto, Todd A. Armstrong, Dakota Schroll, Sarah Al Falatah
 
