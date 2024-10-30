@@ -4,6 +4,7 @@
 
 Nicholas Vietto, Todd A. Armstrong, Dakota Schroll, Sarah Al Falatah
 
+*Accepted for publication at the Journal of Psychopathology and Behavioral Assessment.*
 
 **How to read this file:**
 
